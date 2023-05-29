@@ -1,15 +1,31 @@
 import { useEffect, useRef, useState } from "react";
-import { socket } from "../../socket";
+// import { socket } from "../../socket";
 import { useAuth } from "../../context/Auth";
 import { Socket, io } from "socket.io-client";
+
 const URL = process.env.AUTH_ENDPOINT;
 
+// export const socket = io(URL, {
+//   autoConnect: false,
+//   auth: {
+//     token: getToken(),
+//   },
+// });
 function Chat() {
-  const [isConnected, setIsConnected] = useState(socket.connected);
+  const [isConnected, setIsConnected] = useState(false);
   const [onlineList, setOnlineList] = useState(null);
   const { user } = useAuth();
+  const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
+    socketRef.current = io(URL, {
+      autoConnect: false,
+      auth: {
+        user: JSON.stringify(user),
+      },
+    });
+    const socket = socketRef.current;
+
     socket.connect();
     return () => {
       socket.disconnect();
@@ -17,6 +33,8 @@ function Chat() {
   }, [user]);
 
   useEffect(() => {
+    const socket = socketRef.current;
+
     function onConnect() {
       setIsConnected(true);
       socket.emit("chat/connect", user);
@@ -26,11 +44,9 @@ function Chat() {
       setIsConnected(false);
     }
 
-    function onUpdateOnlineList(data: any) {
-      const list = JSON.parse(data);
-      console.log(list);
-
-      const listWithSelf = list.filter(
+    function onUpdateOnlineList(users: any) {
+      const usersList = users.map((u: any) => JSON.parse(u));
+      const listWithSelf = usersList.filter(
         (u: any) => u.username !== user.username
       );
       setOnlineList(listWithSelf);
