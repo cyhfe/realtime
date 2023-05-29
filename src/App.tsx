@@ -8,6 +8,16 @@ import Chat from "./pages/chat";
 import Login from "./pages/login";
 import Canvas from "./pages/canvas";
 import { Outlet } from "react-router-dom";
+import { AuthProvider } from "./context/Auth";
+function RequireAuth({ children }: { children: JSX.Element }) {
+  let auth = false;
+  if (!auth) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
 const router = createBrowserRouter([
   {
     path: "/login",
@@ -15,7 +25,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: <Layout />,
+    element: (
+      <RequireAuth>
+        <Layout />
+      </RequireAuth>
+    ),
     children: [
       {
         path: "/",
@@ -42,12 +56,16 @@ const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: <Navigate to="chat" />,
+        element: <div>404 NOT FOUND</div>,
       },
     ],
   },
 ]);
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
