@@ -1,28 +1,53 @@
-const stats = [
-  { id: 1, name: "Transactions every 24 hours", value: "44 million" },
-  { id: 2, name: "Assets under holding", value: "$119 trillion" },
-  { id: 3, name: "New users annually", value: "46,000" },
-];
+import {
+  Navigate,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
+import Layout from "./Layout";
+import Chat from "./pages/chat";
+import Login from "./pages/login";
+import Canvas from "./pages/canvas";
+import { Outlet } from "react-router-dom";
+const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      {
+        path: "/",
+        element: <Navigate to="/chat" />,
+      },
+      {
+        path: "/chat",
+        element: (
+          <div>
+            chat
+            <Outlet />
+          </div>
+        ),
+        children: [
+          {
+            path: "/chat/:channelId",
+            element: <div>chat: 1</div>,
+          },
+        ],
+      },
+      {
+        path: "/canvas",
+        element: <div>canvas</div>,
+      },
+      {
+        path: "*",
+        element: <Navigate to="chat" />,
+      },
+    ],
+  },
+]);
 
-export default function Example() {
-  console.log(process.env.ENDPOINT);
-  return (
-    <div className="bg-white py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <dl className="grid grid-cols-1 gap-x-8 gap-y-16 text-center lg:grid-cols-3">
-          {stats.map((stat) => (
-            <div
-              key={stat.id}
-              className="mx-auto flex max-w-xs flex-col gap-y-4"
-            >
-              <dt className="text-base leading-7 text-gray-600">{stat.name}</dt>
-              <dd className="order-first text-3xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-    </div>
-  );
+export default function App() {
+  return <RouterProvider router={router} />;
 }
