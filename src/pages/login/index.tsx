@@ -59,7 +59,12 @@ function Signup() {
           </Form.Message>
         </div>
         <Form.Control asChild>
-          <input className="Input" type="text" required />
+          <input
+            className="Input"
+            type="text"
+            required
+            autoComplete="username"
+          />
         </Form.Control>
       </Form.Field>
       <Form.Field className="FormField" name="password">
@@ -70,7 +75,7 @@ function Signup() {
           </Form.Message>
         </div>
         <Form.Control asChild>
-          <input type="password" required />
+          <input type="password" required autoComplete="current-password" />
         </Form.Control>
       </Form.Field>
       <Form.Submit asChild>
@@ -131,7 +136,12 @@ function Login() {
           </Form.Message>
         </div>
         <Form.Control asChild>
-          <input className="Input" type="text" required />
+          <input
+            className="Input"
+            type="text"
+            required
+            autoComplete="username"
+          />
         </Form.Control>
       </Form.Field>
       <Form.Field className="FormField" name="password">
@@ -142,7 +152,7 @@ function Login() {
           </Form.Message>
         </div>
         <Form.Control asChild>
-          <input type="password" required />
+          <input type="password" required autoComplete="current-password" />
         </Form.Control>
       </Form.Field>
       <Form.Submit asChild>
