@@ -2,6 +2,7 @@ const { merge } = require("webpack-merge");
 const common = require("./webpack.common.js");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const Dotenv = require("dotenv-webpack");
 
 module.exports = merge(common, {
   mode: "production",
@@ -20,6 +21,10 @@ module.exports = merge(common, {
       chunkFilename: "static/css/[name].[contenthash:8].chunk.css",
     }),
     new CssMinimizerPlugin(),
+    new Dotenv({
+      path: "./.env.prod",
+      systemvars: true,
+    }),
   ],
   optimization: {
     // 将 runtime 代码拆分为一个单独的 chunk。将其设置为 single 来为所有 chunk 创建一个 runtime bundle：

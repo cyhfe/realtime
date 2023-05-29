@@ -4,9 +4,8 @@ const stats = [
   { id: 3, name: "New users annually", value: "46,000" },
 ];
 
-console.log(process.env.VERSION);
-
 export default function Example() {
+  console.log(process.env.ENDPOINT);
   return (
     <div className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
