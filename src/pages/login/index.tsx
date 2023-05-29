@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { setToken } from "../../utils";
 import { useAuth } from "../../context/Auth";
