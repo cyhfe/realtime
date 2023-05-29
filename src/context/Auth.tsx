@@ -1,4 +1,10 @@
-import { createContext, useContext, useLayoutEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from "react";
 import { getToken, removeToken } from "../utils";
 
 const AutuContext = createContext(null);
@@ -14,6 +20,11 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const token = getToken();
+
+  function logout() {
+    removeToken();
+    setUser(null);
+  }
 
   useLayoutEffect(() => {
     async function getUser() {
@@ -37,18 +48,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
             id,
           });
         } else {
-          removeToken();
-          setUser(null);
+          logout();
         }
       }
     }
     getUser();
-  }, [token]);
+  }, []);
 
-  const ctx = {
-    user,
-    setUser,
-  };
+  const ctx = useMemo(() => {
+    return {
+      user,
+      setUser,
+      logout,
+    };
+  }, [user]);
 
   return (
     <AutuContext.Provider value={ctx}>
