@@ -1,10 +1,7 @@
-import { createContext, useEffect, useLayoutEffect, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-
-const AUTH_ENDPOINT = process.env.AUTH_ENDPOINT;
+import { createContext, useContext, useLayoutEffect, useState } from "react";
+import { getToken, removeToken } from "../utils";
 
 const AutuContext = createContext(null);
-
 interface User {
   username: string;
   id: string;
@@ -16,29 +13,50 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
-  // const login = (body) => {
-  //   const user = fetch(AUTH_ENDPOINT + '/signin',{
-  //     body
-  //   })
-  // };
-  // const logout = () => {
-  //   setUser(null);
-  //   localStorage.removeItem("k");
-  // };
+  const token = getToken();
+
+  useLayoutEffect(() => {
+    async function getUser() {
+      if (token) {
+        const body = {
+          token,
+        };
+        const res = await fetch(process.env.AUTH_ENDPOINT + "me", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (res.status === 200) {
+          const { user } = await res.json();
+          const { username, id } = user;
+          setUser({
+            username,
+            id,
+          });
+        } else {
+          removeToken();
+          setUser(null);
+        }
+      }
+    }
+    getUser();
+  }, [token]);
 
   const ctx = {
     user,
+    setUser,
   };
 
-  useLayoutEffect(() => {
-    // const token = getToken();
-    // if (token) {
-    //   const user = request("/me", {
-    //     token,
-    //   });
-    //   setUser(user);
-    // }
-  }, []);
+  return (
+    <AutuContext.Provider value={ctx}>
+      {(!token || user) && children}
+    </AutuContext.Provider>
+  );
+}
 
-  return <AutuContext.Provider value={ctx}>{children}</AutuContext.Provider>;
+export function useAuth() {
+  return useContext(AutuContext);
 }

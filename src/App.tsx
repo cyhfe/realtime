@@ -8,10 +8,14 @@ import Chat from "./pages/chat";
 import Login from "./pages/login";
 import Canvas from "./pages/canvas";
 import { Outlet } from "react-router-dom";
-import { AuthProvider } from "./context/Auth";
+import { AuthProvider, useAuth } from "./context/Auth";
+import { useEffect, useLayoutEffect } from "react";
+import { getToken } from "./utils";
 function RequireAuth({ children }: { children: JSX.Element }) {
-  let auth = false;
-  if (!auth) {
+  let ctx = useAuth();
+
+  if (!ctx.user) {
+    console.log(ctx.user);
     return <Navigate to="/login" replace />;
   }
 
