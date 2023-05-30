@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { setToken } from "../../utils";
+import { requestAuth, setToken } from "../../utils";
 import { useAuth } from "../../context/Auth";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Form from "@radix-ui/react-form";
@@ -22,12 +22,9 @@ function Signup() {
       username,
       password,
     };
-    const res = await fetch(AUTH_ENDPOINT + "user", {
+    const res = await requestAuth("user", {
       method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      data: body,
     });
     const data = await res.json();
 
@@ -118,12 +115,9 @@ function Login() {
       username,
       password,
     };
-    const res = await fetch(AUTH_ENDPOINT + "signin", {
+    const res = await requestAuth("signin", {
       method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      data: body,
     });
     const data = await res.json();
 

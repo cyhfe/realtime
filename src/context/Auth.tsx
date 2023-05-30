@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { getToken, removeToken } from "../utils";
+import { getToken, removeToken, requestAuth } from "../utils";
 
 const AutuContext = createContext(null);
 interface User {
@@ -32,14 +32,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const body = {
           token,
         };
-        const res = await fetch(process.env.AUTH_ENDPOINT + "me", {
+        const res = await requestAuth("me", {
           method: "post",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
+          data: body,
         });
-
         if (res.status === 200) {
           const { user } = await res.json();
           const { username, id } = user;
