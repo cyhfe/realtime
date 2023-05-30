@@ -14,9 +14,10 @@ function ChatIndex() {
 
 function ChatChanel() {
   const { chanelId } = useParams();
-  const [messages, setMessages] = useState(null);
+  const [chanelMessages, setChanelMessages] = useState(null);
   const [chanel, setChanel] = useState(null);
   const { socketRef, isConnected } = useChat();
+  const messageRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -25,7 +26,11 @@ function ChatChanel() {
     function onGetChanel(chanel: any) {
       setChanel(chanel);
     }
+    function onUpdateChanelMessages(message: any) {
+      setChanelMessages(message);
+    }
     socket.on("chat/getChanel", onGetChanel);
+    socket.on("chat/updateChanelMessages", onUpdateChanelMessages);
     return () => {
       socket.off("chat/getChanel", onGetChanel);
     };
@@ -45,11 +50,26 @@ function ChatChanel() {
 
   return (
     <div>
-      <div>聊天内容</div>
       <div>{chanel && chanel.name}</div>
+      <div>聊天内容</div>
       <div>
-        <input type="text" />
-        <button>发送</button>
+        {chanelMessages &&
+          chanelMessages.map((m: any) => {
+            return <div>{m.content}</div>;
+          })}
+      </div>
+      <div>
+        <input type="text" ref={messageRef} />
+        <button
+          onClick={() => {
+            socketRef.current.emit("chat/chanelMessage", {
+              chanelId,
+              content: messageRef.current.value,
+            });
+          }}
+        >
+          发送
+        </button>
       </div>
     </div>
   );
