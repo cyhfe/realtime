@@ -5,8 +5,6 @@ import { useAuth } from "../../context/Auth";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Form from "@radix-ui/react-form";
 
-const AUTH_ENDPOINT = process.env.AUTH_ENDPOINT;
-
 function Signup() {
   const [serverError, setServerError] = useState("");
   const { setUser } = useAuth();
