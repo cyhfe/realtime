@@ -11,6 +11,9 @@ function Chat() {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [users, setUsers] = useState(null);
+  const messageRef = useRef<HTMLInputElement>(null);
+  const [to, setTo] = useState(null);
+  const [privateMessages, setPrivateMessages] = useState(null);
 
   useEffect(() => {
     socketRef.current = io(AUTH_BASE_URL, {
@@ -40,21 +43,29 @@ function Chat() {
     }
 
     function onUpdateOnlineList(users: any) {
-      const usersList = users.map((u: any) => JSON.parse(u));
-      const listWithSelf = usersList.filter(
+      const usersList = JSON.parse(users);
+      const usersWithoutSelf = usersList.filter(
         (u: any) => u.username !== user.username
       );
-      console.log(listWithSelf);
-      setOnlineList(listWithSelf);
+      console.log(usersWithoutSelf);
+      setOnlineList(usersWithoutSelf);
+    }
+
+    function onUpdatePrivateMessages(messages: any) {
+      console.log("u");
+
+      setPrivateMessages(messages);
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("chat/updateOnlineList", onUpdateOnlineList);
+    socket.on("chat/updatePrivateMessages", onUpdatePrivateMessages);
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("chat/updateOnlineList", onUpdateOnlineList);
+      socket.off("chat/updatePrivateMessages", onUpdatePrivateMessages);
     };
   }, [user]);
 
@@ -87,7 +98,16 @@ function Chat() {
             users
               .filter((u: any) => u.username !== user.username)
               .map((user: any) => {
-                return <div key={user.id}>{user.username}</div>;
+                return (
+                  <div
+                    onClick={() => {
+                      setTo(user.id);
+                    }}
+                    key={user.id}
+                  >
+                    {user.username}
+                  </div>
+                );
               })}
         </div>
       </div>
@@ -101,7 +121,28 @@ function Chat() {
           <div>所有频道</div>
         </div>
       </div>
-      <div className="basis-auto">聊天框</div>
+      <div className="basis-auto">
+        <div>私聊 to: {to}</div>
+        <div>聊天内容</div>
+
+        <div>
+          {privateMessages &&
+            privateMessages.map((m: any) => {
+              return <div key={m.id}>{m.content}</div>;
+            })}
+        </div>
+        <input type="text" ref={messageRef} />
+        <button
+          onClick={() => {
+            socketRef.current?.emit("chat/privateMessage", {
+              content: messageRef.current.value,
+              to,
+            });
+          }}
+        >
+          发送
+        </button>
+      </div>
     </div>
   );
 }
