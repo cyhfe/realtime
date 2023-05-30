@@ -16,6 +16,7 @@ function ChatChanel() {
   const { chanelId } = useParams();
   const [chanelMessages, setChanelMessages] = useState(null);
   const [chanel, setChanel] = useState(null);
+  const [users, setUsers] = useState(null);
   const { socketRef, isConnected } = useChat();
   const messageRef = useRef<HTMLInputElement | null>(null);
 
@@ -29,19 +30,30 @@ function ChatChanel() {
     function onUpdateChanelMessages(message: any) {
       setChanelMessages(message);
     }
+    function onUpdateChanelUsers(users: any) {
+      setUsers(users);
+    }
+
     socket.on("chat/getChanel", onGetChanel);
     socket.on("chat/updateChanelMessages", onUpdateChanelMessages);
+    socket.on("chat/updateChanelUsers", onUpdateChanelUsers);
+
     return () => {
       socket.off("chat/getChanel", onGetChanel);
+      socket.off("chat/updateChanelMessages", onUpdateChanelMessages);
+      socket.off("chat/updateChanelUsers", onUpdateChanelUsers);
     };
   }, [socketRef]);
 
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return noop;
-    socket.emit("chat/enterChanel", chanelId);
     socket.emit("chat/getChanel", chanelId);
-    // socket.emit("chat/updateChanelMessage", chanelId);
+    socket.emit("chat/enterChanel", chanelId);
+
+    return () => {
+      socket.emit("chat/leaveChanel", chanelId);
+    };
   }, [chanelId, socketRef]);
 
   if (!isConnected) {
@@ -50,7 +62,14 @@ function ChatChanel() {
 
   return (
     <div>
-      <div>{chanel && chanel.name}</div>
+      <div>频道名{chanel && chanel.name}</div>
+      <div>
+        当前频道用户
+        {users &&
+          users.map((user: any) => {
+            return <div>{user.username}</div>;
+          })}
+      </div>
       <div>聊天内容</div>
       <div>
         {chanelMessages &&
