@@ -10,6 +10,7 @@ import Login from "./pages/login";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "./context/Auth";
 import Chat from "./pages/chat";
+import { ChatIndex, ChatPrivate, ChatChanel } from "./pages/chat/Chat";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -41,6 +42,21 @@ const router = createBrowserRouter([
       {
         path: "/chat",
         element: <Chat />,
+        children: [
+          {
+            index: true,
+            element: <ChatIndex />,
+          },
+
+          {
+            path: "/chat/private/:toUserId",
+            element: <ChatPrivate />,
+          },
+          {
+            path: "/chat/chanel/:chanelId",
+            element: <ChatChanel />,
+          },
+        ],
       },
       {
         path: "/canvas",

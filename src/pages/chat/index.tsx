@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-// import { socket } from "../../socket";
 import { useAuth } from "../../context/Auth";
 import { Socket, io } from "socket.io-client";
 import { getToken, request } from "../../utils";
 import { AUTH_BASE_URL } from "../../utils/const";
+import { Link, Outlet } from "react-router-dom";
 
 function Chat() {
   const [isConnected, setIsConnected] = useState(false);
@@ -11,9 +11,11 @@ function Chat() {
   const { user } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [users, setUsers] = useState(null);
-  const messageRef = useRef<HTMLInputElement>(null);
+  const messageRef = useRef<HTMLInputElement | null>(null);
   const [to, setTo] = useState(null);
   const [privateMessages, setPrivateMessages] = useState(null);
+  const newChanelInputRef = useRef<HTMLInputElement | null>(null);
+  const [chanels, setChanels] = useState(null);
 
   useEffect(() => {
     socketRef.current = io(AUTH_BASE_URL, {
@@ -47,38 +49,40 @@ function Chat() {
       const usersWithoutSelf = usersList.filter(
         (u: any) => u.username !== user.username
       );
-      console.log(usersWithoutSelf);
       setOnlineList(usersWithoutSelf);
     }
 
     function onUpdatePrivateMessages(messages: any) {
-      console.log("u");
-
       setPrivateMessages(messages);
+    }
+
+    function onUpdateChanels(chanels: any) {
+      setChanels(chanels);
+    }
+
+    function onUpdateUsers(users: any) {
+      setUsers(users);
     }
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("chat/updateOnlineList", onUpdateOnlineList);
     socket.on("chat/updatePrivateMessages", onUpdatePrivateMessages);
+    socket.on("chat/updateChanels", onUpdateChanels);
+    socket.on("chat/updateUsers", onUpdateUsers);
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("chat/updateOnlineList", onUpdateOnlineList);
       socket.off("chat/updatePrivateMessages", onUpdatePrivateMessages);
+      socket.off("chat/updateChanels", onUpdateChanels);
+      socket.off("chat/updateUsers", onUpdateUsers);
     };
   }, [user]);
 
   useEffect(() => {
-    async function getUsers() {
-      const res = await request("user", {
-        token: getToken(),
-      });
-      const data = await res.json();
-
-      setUsers(data.users);
-    }
-    getUsers();
+    socketRef.current.emit("chat/updateUsers");
+    socketRef.current.emit("chat/updateChanels");
   }, []);
 
   return (
@@ -89,7 +93,11 @@ function Chat() {
           在线:
           {onlineList &&
             onlineList.map((user: any) => {
-              return <div key={user.id}>{user.username}</div>;
+              return (
+                <Link to={`private/${user.id}`} key={user.id}>
+                  {user.username}
+                </Link>
+              );
             })}
         </div>
         <div>
@@ -99,13 +107,8 @@ function Chat() {
               .filter((u: any) => u.username !== user.username)
               .map((user: any) => {
                 return (
-                  <div
-                    onClick={() => {
-                      setTo(user.id);
-                    }}
-                    key={user.id}
-                  >
-                    {user.username}
+                  <div key={user.id}>
+                    <Link to={`private/${user.id}`}>{user.username}</Link>
                   </div>
                 );
               })}
@@ -114,34 +117,47 @@ function Chat() {
       <div className="basis-60">
         <div>
           <div>
-            我的频道
             <div>创建频道</div>
+            我的频道
+            <div>
+              {chanels &&
+                chanels
+                  .filter((c: any) => c.userId === user.id)
+                  .map((chanel: any) => {
+                    return (
+                      <Link to={"/chanel/" + chanel.userId} key={chanel.id}>
+                        {chanel.name}
+                      </Link>
+                    );
+                  })}
+            </div>
+            <div>其他频道</div>
+            <div>
+              {chanels &&
+                chanels
+                  .filter((c: any) => c.userId !== user.id)
+                  .map((chanel: any) => {
+                    return <div key={chanel.id}>{chanel.name}</div>;
+                  })}
+            </div>
+            <div>
+              <button
+                onClick={() => {
+                  socketRef.current.emit(
+                    "chat/createChanel",
+                    newChanelInputRef.current.value
+                  );
+                }}
+              >
+                创建
+              </button>
+              <input type="text" ref={newChanelInputRef} />
+            </div>
           </div>
-
-          <div>所有频道</div>
         </div>
       </div>
       <div className="basis-auto">
-        <div>私聊 to: {to}</div>
-        <div>聊天内容</div>
-
-        <div>
-          {privateMessages &&
-            privateMessages.map((m: any) => {
-              return <div key={m.id}>{m.content}</div>;
-            })}
-        </div>
-        <input type="text" ref={messageRef} />
-        <button
-          onClick={() => {
-            socketRef.current?.emit("chat/privateMessage", {
-              content: messageRef.current.value,
-              to,
-            });
-          }}
-        >
-          发送
-        </button>
+        <Outlet />
       </div>
     </div>
   );
