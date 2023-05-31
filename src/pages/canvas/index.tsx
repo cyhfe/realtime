@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { AUTH_BASE_URL } from "../../utils/const";
 import { useAuth } from "../../context/Auth";
-
+import { useThrottle } from "../../hooks/useThrottle";
 interface Current {
   x: number;
   y: number;
@@ -23,16 +23,18 @@ function Canvas() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [current, setCurrent] = useState<Current | null>(null);
 
-  useEffect(() => {
-    // function onResize() {
-    //   const { width, height } = containerRef.current.getBoundingClientRect();
-    //   canvasRef.current.width = width;
-    //   canvasRef.current.height = height;
-    // }
-    // window.addEventListener("resize", onResize);
-    // return () => {
-    //   window.removeEventListener("resize", onResize);
-    // };
+  // reflow
+  useLayoutEffect(() => {
+    function onResize() {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      canvasRef.current.width = width;
+      canvasRef.current.height = height;
+    }
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
 
   function draw(line: Line) {
@@ -64,7 +66,10 @@ function Canvas() {
   function onMouseOut() {
     setIsDrawing(false);
   }
-  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+
+  const onMouseMove = useThrottle(function onMouseMove(
+    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ) {
     if (!isDrawing) return;
 
     const { top, left, width, height } =
@@ -72,13 +77,18 @@ function Canvas() {
     const x = (e.clientX - left) / width;
     const y = (e.clientY - top) / height;
 
-    draw({
+    const line = {
       px: current.x,
       py: current.y,
       nx: x,
       ny: y,
-    });
-  }
+    };
+
+    socketRef.current.emit("drawing", line);
+
+    draw(line);
+  },
+  10);
 
   useEffect(() => {
     socketRef.current = io(AUTH_BASE_URL + "canvas", {
