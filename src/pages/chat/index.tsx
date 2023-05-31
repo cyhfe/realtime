@@ -26,11 +26,11 @@ function Chat() {
   const messageRef = useRef<HTMLInputElement | null>(null);
   const [to, setTo] = useState(null);
   const [privateMessages, setPrivateMessages] = useState(null);
-  const newChanelInputRef = useRef<HTMLInputElement | null>(null);
-  const [chanels, setChanels] = useState(null);
+  const newChannelInputRef = useRef<HTMLInputElement | null>(null);
+  const [channels, setChannels] = useState(null);
 
   useEffect(() => {
-    socketRef.current = io(AUTH_BASE_URL, {
+    socketRef.current = io(AUTH_BASE_URL + "chat", {
       autoConnect: false,
       auth: {
         user: JSON.stringify(user),
@@ -75,8 +75,8 @@ function Chat() {
       setPrivateMessages(messages);
     }
 
-    function onUpdateChanels(chanels: any) {
-      setChanels(chanels);
+    function onUpdateChannels(channels: any) {
+      setChannels(channels);
     }
 
     function onUpdateUsers(users: any) {
@@ -87,7 +87,7 @@ function Chat() {
     socket.on("disconnect", onDisconnect);
     socket.on("chat/updateOnlineList", onUpdateOnlineList);
     // socket.on("chat/updatePrivateMessages", onUpdatePrivateMessages);
-    socket.on("chat/updateChanels", onUpdateChanels);
+    socket.on("chat/updateChannels", onUpdateChannels);
     socket.on("chat/updateUsers", onUpdateUsers);
 
     return () => {
@@ -95,14 +95,14 @@ function Chat() {
       socket.off("disconnect", onDisconnect);
       socket.off("chat/updateOnlineList", onUpdateOnlineList);
       // socket.off("chat/updatePrivateMessages", onUpdatePrivateMessages);
-      socket.off("chat/updateChanels", onUpdateChanels);
+      socket.off("chat/updateChannels", onUpdateChannels);
       socket.off("chat/updateUsers", onUpdateUsers);
     };
   }, [user]);
 
   useEffect(() => {
     socketRef.current.emit("chat/updateUsers");
-    socketRef.current.emit("chat/updateChanels");
+    socketRef.current.emit("chat/updateChannels");
   }, []);
 
   return (
@@ -141,26 +141,30 @@ function Chat() {
               <div>创建频道</div>
               我的频道
               <div>
-                {chanels &&
-                  chanels
+                {channels &&
+                  channels
                     .filter((c: any) => c.userId === user.id)
-                    .map((chanel: any) => {
+                    .map((channel: any) => {
                       return (
-                        <div key={chanel.id}>
-                          <Link to={`chanel/${chanel.id}`}>{chanel.name}</Link>
+                        <div key={channel.id}>
+                          <Link to={`channel/${channel.id}`}>
+                            {channel.name}
+                          </Link>
                         </div>
                       );
                     })}
               </div>
               <div>其他频道</div>
               <div>
-                {chanels &&
-                  chanels
+                {channels &&
+                  channels
                     .filter((c: any) => c.userId !== user.id)
-                    .map((chanel: any) => {
+                    .map((channel: any) => {
                       return (
-                        <div key={chanel.id}>
-                          <Link to={`chanel/${chanel.id}`}>{chanel.name}</Link>
+                        <div key={channel.id}>
+                          <Link to={`channel/${channel.id}`}>
+                            {channel.name}
+                          </Link>
                         </div>
                       );
                     })}
@@ -169,14 +173,14 @@ function Chat() {
                 <button
                   onClick={() => {
                     socketRef.current.emit(
-                      "chat/createChanel",
-                      newChanelInputRef.current.value
+                      "chat/createChannel",
+                      newChannelInputRef.current.value
                     );
                   }}
                 >
                   创建
                 </button>
-                <input type="text" ref={newChanelInputRef} />
+                <input type="text" ref={newChannelInputRef} />
               </div>
             </div>
           </div>

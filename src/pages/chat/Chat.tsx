@@ -12,10 +12,10 @@ function ChatIndex() {
   return <div>index</div>;
 }
 
-function ChatChanel() {
-  const { chanelId } = useParams();
-  const [chanelMessages, setChanelMessages] = useState(null);
-  const [chanel, setChanel] = useState(null);
+function ChatChannel() {
+  const { channelId } = useParams();
+  const [channelMessages, setChannelMessages] = useState(null);
+  const [channel, setChannel] = useState(null);
   const [users, setUsers] = useState(null);
   const { socketRef, isConnected } = useChat();
   const messageRef = useRef<HTMLInputElement | null>(null);
@@ -24,37 +24,37 @@ function ChatChanel() {
     const socket = socketRef.current;
     if (!socket) return noop;
 
-    function onGetChanel(chanel: any) {
-      setChanel(chanel);
+    function onGetChannel(channel: any) {
+      setChannel(channel);
     }
-    function onUpdateChanelMessages(message: any) {
-      setChanelMessages(message);
+    function onUpdateChannelMessages(message: any) {
+      setChannelMessages(message);
     }
-    function onUpdateChanelUsers(users: any) {
+    function onUpdateChannelUsers(users: any) {
       setUsers(users);
     }
 
-    socket.on("chat/getChanel", onGetChanel);
-    socket.on("chat/updateChanelMessages", onUpdateChanelMessages);
-    socket.on("chat/updateChanelUsers", onUpdateChanelUsers);
+    socket.on("chat/getChannel", onGetChannel);
+    socket.on("chat/updateChannelMessages", onUpdateChannelMessages);
+    socket.on("chat/updateChannelUsers", onUpdateChannelUsers);
 
     return () => {
-      socket.off("chat/getChanel", onGetChanel);
-      socket.off("chat/updateChanelMessages", onUpdateChanelMessages);
-      socket.off("chat/updateChanelUsers", onUpdateChanelUsers);
+      socket.off("chat/getChannel", onGetChannel);
+      socket.off("chat/updateChannelMessages", onUpdateChannelMessages);
+      socket.off("chat/updateChannelUsers", onUpdateChannelUsers);
     };
   }, [socketRef]);
 
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return noop;
-    socket.emit("chat/getChanel", chanelId);
-    socket.emit("chat/enterChanel", chanelId);
+    socket.emit("chat/getChannel", channelId);
+    socket.emit("chat/enterChannel", channelId);
 
     return () => {
-      socket.emit("chat/leaveChanel", chanelId);
+      socket.emit("chat/leaveChannel", channelId);
     };
-  }, [chanelId, socketRef]);
+  }, [channelId, socketRef]);
 
   if (!isConnected) {
     return <Navigate to="/chat"></Navigate>;
@@ -62,7 +62,7 @@ function ChatChanel() {
 
   return (
     <div>
-      <div>频道名{chanel && chanel.name}</div>
+      <div>频道名{channel && channel.name}</div>
       <div>
         当前频道用户
         {users &&
@@ -72,8 +72,8 @@ function ChatChanel() {
       </div>
       <div>聊天内容</div>
       <div>
-        {chanelMessages &&
-          chanelMessages.map((m: any) => {
+        {channelMessages &&
+          channelMessages.map((m: any) => {
             return <div>{m.content}</div>;
           })}
       </div>
@@ -81,8 +81,8 @@ function ChatChanel() {
         <input type="text" ref={messageRef} />
         <button
           onClick={() => {
-            socketRef.current.emit("chat/chanelMessage", {
-              chanelId,
+            socketRef.current.emit("chat/channelMessage", {
+              channelId,
               content: messageRef.current.value,
             });
           }}
@@ -146,4 +146,4 @@ function ChatPrivate() {
   );
 }
 
-export { ChatIndex, ChatChanel, ChatPrivate };
+export { ChatIndex, ChatChannel, ChatPrivate };
