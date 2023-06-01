@@ -12,6 +12,8 @@ import { getToken, request } from "../../utils";
 import { AUTH_BASE_URL } from "../../utils/const";
 import { Link, Outlet, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
+import { Online } from "../../components/Online";
+import clsx from "clsx";
 const ChatContext = createContext(null);
 export function useChat() {
   return useContext(ChatContext);
@@ -102,13 +104,13 @@ function Chat() {
     socketRef.current.emit("chat/updateChannels");
   }, []);
 
-  const title = "p-2 text-xs text-slate-600";
+  const title = clsx("p-2 text-xs text-slate-600");
 
   return (
     <ChatContext.Provider value={ctx}>
-      <div className="flex ">
-        <div className="h-96 basis-60  overflow-y-auto  border-r-2 border-slate-200 ">
-          <div className="text-sm">
+      <div className="flex h-full">
+        <div className=" basis-60  overflow-y-auto overflow-x-hidden  border-r-2 border-slate-200 ">
+          <div className="text-sm text-slate-600">
             <Collapsible.Root defaultOpen className="mb-2">
               <Collapsible.Trigger className="" asChild>
                 <button className={title}>在线</button>
@@ -137,7 +139,7 @@ function Chat() {
                           />
                           <div className="ml-2 flex flex-col ">
                             <div>{user.username}</div>
-                            <div>online</div>
+                            <Online online />
                           </div>
                         </Link>
                       </div>
@@ -172,13 +174,13 @@ function Chat() {
                           "
                           >
                             <img
-                              className=" h-11 w-11 flex-none rounded-full bg-gray-50"
+                              className="h-11 w-11 flex-none rounded-full bg-gray-50 brightness-50"
                               src={user.avatar}
                               alt="avatar"
                             />
                             <div className="ml-2 flex flex-col ">
                               <div>{user.username}</div>
-                              <div>online</div>
+                              <Online />
                             </div>
                           </Link>
                         </div>
@@ -188,12 +190,12 @@ function Chat() {
             </Collapsible.Root>
           </div>
         </div>
-        <div className="h-96 basis-60  overflow-y-auto  border-r-2 border-slate-200 ">
+        <div className=" basis-60 overflow-y-auto overflow-x-hidden  border-r-2 border-slate-200 ">
           <Collapsible.Root defaultOpen className="mb-2">
             <Collapsible.Trigger className="" asChild>
               <button className={title}>我的频道</button>
             </Collapsible.Trigger>
-            <Collapsible.Content className="">
+            <Collapsible.Content className="divide-y divide-slate-100">
               {channels &&
                 channels
                   .filter((c: any) => c.userId === user.id)
@@ -220,7 +222,7 @@ function Chat() {
             <Collapsible.Trigger className="" asChild>
               <button className={title}>其他频道</button>
             </Collapsible.Trigger>
-            <Collapsible.Content className="overflow-x-hidden">
+            <Collapsible.Content className="divide-y divide-slate-100">
               {channels &&
                 channels
                   .filter((c: any) => c.userId !== user.id)
@@ -244,8 +246,10 @@ function Chat() {
             </Collapsible.Content>
           </Collapsible.Root>
         </div>
-        <div className="m-auto basis-auto">
-          <Outlet />
+        <div className="flex grow items-center justify-center">
+          <div className="flex h-full w-full items-center justify-center p-4">
+            <Outlet />
+          </div>
         </div>
       </div>
     </ChatContext.Provider>
