@@ -12,6 +12,7 @@ import { useAuth } from "./context/Auth";
 import Chat from "./pages/chat";
 import { ChatIndex, ChatPrivate, ChatChannel } from "./pages/chat/Chat";
 import Canvas from "./pages/canvas";
+import { Music } from "./pages/music";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -62,6 +63,10 @@ const router = createBrowserRouter([
       {
         path: "/canvas",
         element: <Canvas />,
+      },
+      {
+        path: "/music",
+        element: <Music />,
       },
       {
         path: "*",

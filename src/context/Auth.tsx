@@ -11,6 +11,7 @@ const AutuContext = createContext(null);
 interface User {
   username: string;
   id: string;
+  avatar: string;
 }
 
 interface AuthProviderProps {
@@ -19,6 +20,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [online, setOnline] = useState(false);
   const token = getToken();
 
   function logout() {
@@ -38,10 +40,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
         if (res.status === 200) {
           const { user } = await res.json();
-          const { username, id } = user;
+          const { username, id, avatar } = user;
+
           setUser({
             username,
             id,
+            avatar,
           });
         } else {
           logout();
@@ -56,8 +60,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       setUser,
       logout,
+      online,
+      setOnline,
     };
-  }, [user]);
+  }, [online, user]);
 
   return (
     <AutuContext.Provider value={ctx}>

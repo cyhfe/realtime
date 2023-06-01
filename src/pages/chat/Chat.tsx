@@ -9,7 +9,7 @@ import { useChat } from ".";
 function noop() {}
 
 function ChatIndex() {
-  return <div>index</div>;
+  return <div>请选择一个用户或者频道开始聊天吧!</div>;
 }
 
 function ChatChannel() {

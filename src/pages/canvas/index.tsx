@@ -25,7 +25,7 @@ interface Line {
 const colors = [COLOR.Green, COLOR.Red, COLOR.Slate, COLOR.Violet];
 
 function Canvas() {
-  const user = useAuth();
+  const { user, setOnline } = useAuth();
   const socketRef = useRef(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -117,19 +117,32 @@ function Canvas() {
       },
     });
     const socket = socketRef.current;
+    function onConnect() {
+      setOnline(true);
+    }
 
+    function onDisconnect() {
+      setOnline(false);
+    }
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
     socket.on("drawing", draw);
     socket.on("clear", clear);
     socket.on("changeStrokeColor", setStrokeColor);
     socket.connect();
 
     return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
       socket.off("drawing", draw);
       socket.off("clear", clear);
+      socket.off("changeStrokeColor", setStrokeColor);
 
       socket.disconnect();
+      setOnline(false);
     };
-  }, [draw, user]);
+  }, [draw, setOnline, user]);
 
   return (
     <div className="full-height  relative border" ref={containerRef}>

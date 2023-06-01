@@ -20,7 +20,7 @@ export function useChat() {
 function Chat() {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineList, setOnlineList] = useState(null);
-  const { user } = useAuth();
+  const { user, setOnline } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [users, setUsers] = useState(null);
   const messageRef = useRef<HTMLInputElement | null>(null);
@@ -56,10 +56,12 @@ function Chat() {
 
     function onConnect() {
       setIsConnected(true);
+      setOnline(true);
       socket.emit("chat/connect", user);
     }
 
     function onDisconnect() {
+      setOnline(false);
       setIsConnected(false);
     }
 
@@ -108,7 +110,7 @@ function Chat() {
   return (
     <ChatContext.Provider value={ctx}>
       <div className="flex">
-        <div className="basis-60">
+        <div className="h-60 basis-60 overflow-y-auto bg-white">
           <div>状态: {isConnected ? "在线" : "离线"}</div>
           <div>
             在线:
@@ -135,7 +137,7 @@ function Chat() {
                 })}
           </div>
         </div>
-        <div className="basis-60">
+        <div className="h-60 basis-60 overflow-y-auto bg-white">
           <div>
             <div>
               <div>创建频道</div>
@@ -185,7 +187,7 @@ function Chat() {
             </div>
           </div>
         </div>
-        <div className="basis-auto">
+        <div className="m-auto basis-auto">
           <Outlet />
         </div>
       </div>

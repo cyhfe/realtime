@@ -5,10 +5,20 @@ import { useAuth } from "../../context/Auth";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Form from "@radix-ui/react-form";
 
+import Avatar1 from "../../assets/avatar/avatar1.png";
+import Avatar2 from "../../assets/avatar/avatar2.png";
+import Avatar3 from "../../assets/avatar/avatar3.png";
+import Avatar4 from "../../assets/avatar/avatar4.png";
+import Avatar5 from "../../assets/avatar/avatar5.png";
+import Avatar6 from "../../assets/avatar/avatar6.png";
+
+const avatars = [Avatar1, Avatar2, Avatar3, Avatar4, Avatar5, Avatar6];
+
 function Signup() {
   const [serverError, setServerError] = useState("");
   const { setUser } = useAuth();
   const navigate = useNavigate();
+  const [avatar, setAvatar] = useState(Avatar1);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -19,6 +29,7 @@ function Signup() {
     const body = {
       username,
       password,
+      avatar,
     };
     const res = await requestAuth("user", {
       method: "post",
@@ -33,6 +44,7 @@ function Signup() {
       setUser({
         username,
         id,
+        avatar,
       });
 
       setToken(data.token);
@@ -63,6 +75,35 @@ function Signup() {
             服务端错误: {serverError}
           </div>
         )}
+        <Form.Field className="mb-2.5 flex flex-col" name={"avatar"}>
+          <div className="mb-1.5 flex items-center gap-x-2 text-xs">
+            <Form.Label className=" block text-slate-400">头像</Form.Label>
+            <Form.Message className="text-red-400" match="valueMissing">
+              "请选择头像"
+            </Form.Message>
+          </div>
+          <Form.Control asChild>
+            <div className="flex justify-around">
+              {avatars.map((item) => {
+                return (
+                  <div className="">
+                    <img
+                      onClick={() => setAvatar(item)}
+                      className="block h-11 w-11 flex-none rounded-full bg-gray-50  
+                      brightness-50
+                      data-[selected=true]:brightness-100
+                    "
+                      data-selected={item === avatar ? true : false}
+                      src={item}
+                      alt="avatar"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </Form.Control>
+        </Form.Field>
+
         {fields.map((field, i) => {
           return (
             <Form.Field
@@ -122,10 +163,11 @@ function Login() {
     if (res.status !== 200) {
       setServerError(data.message);
     } else {
-      const { username, id } = data.user;
+      const { username, id, avatar } = data.user;
       setUser({
         username,
         id,
+        avatar,
       });
 
       setToken(data.token);
@@ -201,18 +243,18 @@ function LoginPage() {
 
   const tabs = [
     {
-      label: "登录",
-      content: <Login />,
-    },
-    {
       label: "注册",
       content: <Signup />,
+    },
+    {
+      label: "登录",
+      content: <Login />,
     },
   ];
   return (
     <div className="flex h-screen w-full bg-slate-100">
       <div className="m-auto mt-32 flex items-center justify-center rounded-md bg-white shadow-md	">
-        <Tabs.Root defaultValue="tab0" className="flex w-80 flex-col  divide-y">
+        <Tabs.Root defaultValue="tab0" className="flex w-96 flex-col  divide-y">
           <Tabs.List aria-label="login" className="flex">
             {tabs.map((tab, i) => {
               return (
