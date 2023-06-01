@@ -10,7 +10,7 @@ import { useAuth } from "../../context/Auth";
 import { Socket, io } from "socket.io-client";
 import { getToken, request } from "../../utils";
 import { AUTH_BASE_URL } from "../../utils/const";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
 const ChatContext = createContext(null);
 export function useChat() {
@@ -28,6 +28,7 @@ function Chat() {
   const [privateMessages, setPrivateMessages] = useState(null);
   const newChannelInputRef = useRef<HTMLInputElement | null>(null);
   const [channels, setChannels] = useState(null);
+  const { toUserId, channelId } = useParams();
 
   useEffect(() => {
     socketRef.current = io(AUTH_BASE_URL + "chat", {
@@ -73,10 +74,6 @@ function Chat() {
       setOnlineList(usersWithoutSelf);
     }
 
-    function onUpdatePrivateMessages(messages: any) {
-      setPrivateMessages(messages);
-    }
-
     function onUpdateChannels(channels: any) {
       setChannels(channels);
     }
@@ -88,7 +85,6 @@ function Chat() {
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
     socket.on("chat/updateOnlineList", onUpdateOnlineList);
-    // socket.on("chat/updatePrivateMessages", onUpdatePrivateMessages);
     socket.on("chat/updateChannels", onUpdateChannels);
     socket.on("chat/updateUsers", onUpdateUsers);
 
@@ -96,7 +92,6 @@ function Chat() {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.off("chat/updateOnlineList", onUpdateOnlineList);
-      // socket.off("chat/updatePrivateMessages", onUpdatePrivateMessages);
       socket.off("chat/updateChannels", onUpdateChannels);
       socket.off("chat/updateUsers", onUpdateUsers);
     };
@@ -107,52 +102,84 @@ function Chat() {
     socketRef.current.emit("chat/updateChannels");
   }, []);
 
+  const title = "p-2 text-xs text-slate-600";
+
   return (
     <ChatContext.Provider value={ctx}>
       <div className="flex ">
-        <div className="h-60 basis-60 overflow-hidden border-r-2  border-slate-200 bg-slate-100 p-2 hover:overflow-y-auto">
-          <div className="">
-            <Collapsible.Root defaultOpen className="mb-2 bg-white ">
-              <Collapsible.Trigger
-                className="p-2 transition-all data-[state=open]:bg-indigo-500"
-                asChild
-              >
-                <div>在线</div>
+        <div className="h-96 basis-60  overflow-y-auto  border-r-2 border-slate-200 ">
+          <div className="text-sm">
+            <Collapsible.Root defaultOpen className="mb-2">
+              <Collapsible.Trigger className="" asChild>
+                <button className={title}>在线</button>
               </Collapsible.Trigger>
-              <Collapsible.Content className="transition-all">
+              <Collapsible.Content>
                 {onlineList &&
                   onlineList.map((user: any) => {
                     return (
-                      <Link to={`private/${user.id}`} key={user.id}>
-                        {user.username}
-                        <img
-                          className=" h-11 w-11 flex-none rounded-full bg-gray-50"
-                          src={user.avatar}
-                          alt="avatar"
-                        />
-                      </Link>
+                      <div
+                        className={
+                          toUserId !== user.id ? "bg-white" : "bg-slate-300"
+                        }
+                      >
+                        <Link
+                          to={`private/${user.id}`}
+                          key={user.id}
+                          className="flex
+                          items-center
+                          p-3
+                          "
+                        >
+                          <img
+                            className=" h-11 w-11 flex-none rounded-full bg-gray-50"
+                            src={user.avatar}
+                            alt="avatar"
+                          />
+                          <div className="ml-2 flex flex-col ">
+                            <div>{user.username}</div>
+                            <div>online</div>
+                          </div>
+                        </Link>
+                      </div>
                     );
                   })}
               </Collapsible.Content>
             </Collapsible.Root>
-            <Collapsible.Root defaultOpen className="bg-white ">
+            <Collapsible.Root defaultOpen>
               <Collapsible.Trigger>
-                <div>所有人</div>
+                <button className={title}>离线</button>
               </Collapsible.Trigger>
-              <Collapsible.Content className="data-[state=closed]:animate-slideDown data-[state=open]:animate-slideUp">
+              <Collapsible.Content className="divide-y divide-slate-100">
                 {users &&
                   users
-                    .filter((u: any) => u.username !== user.username)
+                    .filter(
+                      (u: any) =>
+                        !onlineList.find((o: any) => o.username === u.username)
+                    )
                     .map((user: any) => {
                       return (
-                        <div key={user.id}>
-                          <Link to={`private/${user.id}`}>
+                        <div
+                          className={
+                            toUserId !== user.id ? "bg-white" : "bg-slate-300"
+                          }
+                        >
+                          <Link
+                            to={`private/${user.id}`}
+                            key={user.id}
+                            className="flex
+                          items-center
+                          p-3
+                          "
+                          >
                             <img
                               className=" h-11 w-11 flex-none rounded-full bg-gray-50"
                               src={user.avatar}
                               alt="avatar"
                             />
-                            {user.username}
+                            <div className="ml-2 flex flex-col ">
+                              <div>{user.username}</div>
+                              <div>online</div>
+                            </div>
                           </Link>
                         </div>
                       );
@@ -161,55 +188,61 @@ function Chat() {
             </Collapsible.Root>
           </div>
         </div>
-        <div className="h-60 basis-60 overflow-hidden  bg-white p-2">
-          <div className="">
-            <div className="">
-              <div>创建频道</div>
-              我的频道
-              <div>
-                {channels &&
-                  channels
-                    .filter((c: any) => c.userId === user.id)
-                    .map((channel: any) => {
-                      return (
-                        <div key={channel.id}>
-                          <Link to={`channel/${channel.id}`}>
-                            {channel.name}
-                          </Link>
-                        </div>
-                      );
-                    })}
-              </div>
-              <div>其他频道</div>
-              <div>
-                {channels &&
-                  channels
-                    .filter((c: any) => c.userId !== user.id)
-                    .map((channel: any) => {
-                      return (
-                        <div key={channel.id}>
-                          <Link to={`channel/${channel.id}`}>
-                            {channel.name}
-                          </Link>
-                        </div>
-                      );
-                    })}
-              </div>
-              <div>
-                <button
-                  onClick={() => {
-                    socketRef.current.emit(
-                      "chat/createChannel",
-                      newChannelInputRef.current.value
+        <div className="h-96 basis-60  overflow-y-auto  border-r-2 border-slate-200 ">
+          <Collapsible.Root defaultOpen className="mb-2">
+            <Collapsible.Trigger className="" asChild>
+              <button className={title}>我的频道</button>
+            </Collapsible.Trigger>
+            <Collapsible.Content className="">
+              {channels &&
+                channels
+                  .filter((c: any) => c.userId === user.id)
+                  .map((c: any) => {
+                    return (
+                      <div
+                        key={c.id}
+                        className={
+                          c.id !== channelId ? "bg-white" : "bg-slate-300"
+                        }
+                      >
+                        <Link
+                          to={`channel/${c.id}`}
+                          className="block p-2 text-sm text-slate-700"
+                        >
+                          # {c.name}
+                        </Link>
+                      </div>
                     );
-                  }}
-                >
-                  创建
-                </button>
-                <input type="text" ref={newChannelInputRef} />
-              </div>
-            </div>
-          </div>
+                  })}
+            </Collapsible.Content>
+          </Collapsible.Root>
+          <Collapsible.Root defaultOpen className="mb-2">
+            <Collapsible.Trigger className="" asChild>
+              <button className={title}>其他频道</button>
+            </Collapsible.Trigger>
+            <Collapsible.Content className="overflow-x-hidden">
+              {channels &&
+                channels
+                  .filter((c: any) => c.userId !== user.id)
+                  .map((c: any) => {
+                    return (
+                      <div
+                        key={c.id}
+                        className={
+                          c.id !== channelId ? "bg-white" : "bg-slate-300"
+                        }
+                      >
+                        <Link
+                          to={`channel/${c.id}`}
+                          className="block p-2 text-sm text-slate-700"
+                        >
+                          # {c.name}
+                        </Link>
+                      </div>
+                    );
+                  })}
+            </Collapsible.Content>
+          </Collapsible.Root>
         </div>
         <div className="m-auto basis-auto">
           <Outlet />
