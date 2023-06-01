@@ -4,8 +4,8 @@ import { IconCanvas, IconChat, IconLogout, IconMusic } from "./components/icon";
 export default function Layout() {
   const { user, logout, online } = useAuth();
   return (
-    <div className="h-screen  w-full divide-y bg-slate-100">
-      <div className="flex justify-center   bg-white p-5">
+    <div className="h-screen w-full  bg-slate-100">
+      <div className="flex justify-center border-b-2 border-slate-200  bg-white p-5">
         <div className="container flex justify-between">
           <div className="flex gap-x-3">
             <Link to="/chat">

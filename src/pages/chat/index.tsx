@@ -11,7 +11,7 @@ import { Socket, io } from "socket.io-client";
 import { getToken, request } from "../../utils";
 import { AUTH_BASE_URL } from "../../utils/const";
 import { Link, Outlet } from "react-router-dom";
-
+import * as Collapsible from "@radix-ui/react-collapsible";
 const ChatContext = createContext(null);
 export function useChat() {
   return useContext(ChatContext);
@@ -100,7 +100,7 @@ function Chat() {
       socket.off("chat/updateChannels", onUpdateChannels);
       socket.off("chat/updateUsers", onUpdateUsers);
     };
-  }, [user]);
+  }, [setOnline, user]);
 
   useEffect(() => {
     socketRef.current.emit("chat/updateUsers");
@@ -109,37 +109,61 @@ function Chat() {
 
   return (
     <ChatContext.Provider value={ctx}>
-      <div className="flex">
-        <div className="h-60 basis-60 overflow-y-auto bg-white">
-          <div>状态: {isConnected ? "在线" : "离线"}</div>
-          <div>
-            在线:
-            {onlineList &&
-              onlineList.map((user: any) => {
-                return (
-                  <Link to={`private/${user.id}`} key={user.id}>
-                    {user.username}
-                  </Link>
-                );
-              })}
-          </div>
-          <div>
-            <div>所有人...</div>
-            {users &&
-              users
-                .filter((u: any) => u.username !== user.username)
-                .map((user: any) => {
-                  return (
-                    <div key={user.id}>
-                      <Link to={`private/${user.id}`}>{user.username}</Link>
-                    </div>
-                  );
-                })}
+      <div className="flex ">
+        <div className="h-60 basis-60 overflow-hidden border-r-2  border-slate-200 bg-slate-100 p-2 hover:overflow-y-auto">
+          <div className="">
+            <Collapsible.Root defaultOpen className="mb-2 bg-white ">
+              <Collapsible.Trigger
+                className="p-2 transition-all data-[state=open]:bg-indigo-500"
+                asChild
+              >
+                <div>在线</div>
+              </Collapsible.Trigger>
+              <Collapsible.Content className="transition-all">
+                {onlineList &&
+                  onlineList.map((user: any) => {
+                    return (
+                      <Link to={`private/${user.id}`} key={user.id}>
+                        {user.username}
+                        <img
+                          className=" h-11 w-11 flex-none rounded-full bg-gray-50"
+                          src={user.avatar}
+                          alt="avatar"
+                        />
+                      </Link>
+                    );
+                  })}
+              </Collapsible.Content>
+            </Collapsible.Root>
+            <Collapsible.Root defaultOpen className="bg-white ">
+              <Collapsible.Trigger>
+                <div>所有人</div>
+              </Collapsible.Trigger>
+              <Collapsible.Content className="data-[state=closed]:animate-slideDown data-[state=open]:animate-slideUp">
+                {users &&
+                  users
+                    .filter((u: any) => u.username !== user.username)
+                    .map((user: any) => {
+                      return (
+                        <div key={user.id}>
+                          <Link to={`private/${user.id}`}>
+                            <img
+                              className=" h-11 w-11 flex-none rounded-full bg-gray-50"
+                              src={user.avatar}
+                              alt="avatar"
+                            />
+                            {user.username}
+                          </Link>
+                        </div>
+                      );
+                    })}
+              </Collapsible.Content>
+            </Collapsible.Root>
           </div>
         </div>
-        <div className="h-60 basis-60 overflow-y-auto bg-white">
-          <div>
-            <div>
+        <div className="h-60 basis-60 overflow-hidden  bg-white p-2">
+          <div className="">
+            <div className="">
               <div>创建频道</div>
               我的频道
               <div>
