@@ -109,7 +109,7 @@ function Chat() {
   return (
     <ChatContext.Provider value={ctx}>
       <div className="flex h-full w-full">
-        <div className=" basis-60  overflow-y-auto overflow-x-hidden  border-r ">
+        <div className=" min-w-min basis-60	 overflow-y-auto overflow-x-hidden  border-r ">
           <div className="text-sm text-slate-600">
             <Collapsible.Root defaultOpen className="mb-2">
               <Collapsible.Trigger className="" asChild>
@@ -195,7 +195,7 @@ function Chat() {
             </Collapsible.Root>
           </div>
         </div>
-        <div className=" basis-72 overflow-y-auto overflow-x-hidden  border-r  ">
+        <div className=" min-w-min basis-60	 overflow-y-auto overflow-x-hidden  border-r  ">
           <Collapsible.Root defaultOpen className="mb-2">
             <Collapsible.Trigger className="" asChild>
               <button className={title}>我的频道</button>
@@ -252,7 +252,7 @@ function Chat() {
           </Collapsible.Root>
         </div>
         <div className="overflow-x-hidde flex grow items-center justify-center">
-          <div className="h-full w-full bg-slate-200">
+          <div className="bg-slate-150 h-full w-full">
             <Outlet />
           </div>
         </div>

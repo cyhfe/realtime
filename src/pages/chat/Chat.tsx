@@ -11,6 +11,7 @@ import { useAuth } from "../../context/Auth";
 import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { IconSend } from "../../components/icon";
 function noop() {}
 
 function ChatIndex() {
@@ -130,10 +131,22 @@ function ChatPrivate() {
     messageBoxRef.current.scrollTo(0, messageBoxRef.current.scrollHeight);
   }
 
+  function onSendMessage() {
+    socketRef.current?.emit("chat/privateMessage", {
+      content: messageRef.current.value,
+      to: toUserId,
+    });
+    messageRef.current.value = "";
+  }
+
   useLayoutEffect(() => {
     if (!privateMessages || !privateMessages.length) return;
     scrollToTop();
   }, [privateMessages]);
+
+  useEffect(() => {
+    messageRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -176,63 +189,62 @@ function ChatPrivate() {
         {privateMessages.map((m: any) => {
           const owner = m.fromUserId === user.id;
 
-          return owner ? (
-            <div key={m.id} className={"mb-6 flex justify-end"}>
+          return (
+            <div
+              key={m.id}
+              className={clsx(
+                "mb-6 flex",
+                owner ? "justify-end" : "justify-start"
+              )}
+            >
               <div className="flex gap-x-4">
-                <div className="flex flex-col items-end overflow-hidden">
-                  <div className="mb-2">
-                    <span className="pr-2 text-xs text-slate-400">
-                      {new Date(m.createdAt).toLocaleString("zh-CN")}
-                    </span>
-                    <span className="text-md  text-slate-500">
-                      {m.from.username}
-                    </span>
-                  </div>
-                  {/* <div className="prose prose-slate">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {m.content}
-                    </ReactMarkdown>
-                  </div> */}
-                  <div className="text-md max-w-prose rounded bg-white p-2  text-slate-700  shadow">
-                    <div className="prose ">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {m.content}
-                      </ReactMarkdown>
+                {!owner && (
+                  <img
+                    className="h-8 w-8 flex-none rounded-full bg-gray-50"
+                    src={m.from.avatar}
+                    alt="avatar"
+                  />
+                )}
+                <div
+                  className={clsx(
+                    "flex flex-col  overflow-hidden",
+                    owner ? "items-end" : "items-start"
+                  )}
+                >
+                  {owner ? (
+                    <div className="mb-2">
+                      <span className="pr-2 text-xs text-slate-400">
+                        {new Date(m.createdAt).toLocaleString("zh-CN")}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {m.from.username}
+                      </span>
                     </div>
-                  </div>
-                </div>
+                  ) : (
+                    <div className="mb-2">
+                      <span className="text-xs text-slate-500">
+                        {m.from.username}
+                      </span>
+                      <span className="pl-2 text-xs text-slate-400">
+                        {new Date(m.createdAt).toLocaleString("zh-CN")}
+                      </span>
+                    </div>
+                  )}
 
-                <img
-                  className="h-8 w-8 flex-none rounded-full bg-gray-50"
-                  src={m.from.avatar}
-                  alt="avatar"
-                />
-              </div>
-            </div>
-          ) : (
-            <div key={m.id} className={"mb-6 flex justify-start"}>
-              <div className="flex gap-x-4">
-                <img
-                  className="h-8 w-8 flex-none rounded-full bg-gray-50"
-                  src={m.from.avatar}
-                  alt="avatar"
-                />
-                <div className="flex flex-col items-start overflow-hidden">
-                  <div className="mb-2">
-                    <span className="text-md  text-slate-500">
-                      {m.from.username}
-                    </span>
-                    <span className="pl-2 text-xs text-slate-400">
-                      {new Date(m.createdAt).toLocaleString("zh-CN")}
-                    </span>
-                  </div>
-
-                  <div className="text-md max-w-prose rounded bg-white px-3 py-2  text-slate-700  shadow">
+                  <div className="prose prose-slate max-w-prose rounded bg-white px-3 py-2 text-sm  text-slate-600  shadow">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {m.content}
                     </ReactMarkdown>
                   </div>
                 </div>
+
+                {owner && (
+                  <img
+                    className="h-8 w-8 flex-none rounded-full bg-gray-50"
+                    src={m.from.avatar}
+                    alt="avatar"
+                  />
+                )}
               </div>
             </div>
           );
@@ -260,25 +272,26 @@ function ChatPrivate() {
           {renderMessages()}
         </div>
         <div className="shrink-0 grow-0 basis-auto bg-white">
-          {/* <textarea ref={messageRef} /> */}
-          <div className="p-2">
+          <div className="p-6">
             <textarea
               ref={messageRef}
               id="about"
               name="about"
               rows={1}
-              placeholder="enter 发送 ctrl enter 换行"
-              className="unset p=2 block h-24 w-full text-sm placeholder:text-slate-400"
+              placeholder="Ctrl Enter 发送消息"
+              className="unset p=2 block h-24 w-full text-sm text-slate-600 placeholder:text-sm placeholder:text-slate-300"
+              onKeyDown={(event) => {
+                if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                  event.preventDefault();
+                  onSendMessage();
+                }
+              }}
             ></textarea>
             <button
-              onClick={() => {
-                socketRef.current?.emit("chat/privateMessage", {
-                  content: messageRef.current.value,
-                  to: toUserId,
-                });
-              }}
+              className=" block rounded border border-slate-50 px-6 py-1 text-slate-400 shadow transition-colors hover:bg-slate-300 hover:text-white	hover:shadow-none"
+              onClick={onSendMessage}
             >
-              发送
+              <IconSend className="h-5 w-5" />
             </button>
           </div>
         </div>
