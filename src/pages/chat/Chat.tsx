@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  PropsWithChildren,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Navigate,
   useLocation,
@@ -25,6 +31,7 @@ function ChatChannel() {
   const [users, setUsers] = useState(null);
   const { socketRef, isConnected } = useChat();
   const messageRef = useRef<HTMLInputElement | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -64,6 +71,78 @@ function ChatChannel() {
 
   if (!isConnected) {
     return <Navigate to="/chat"></Navigate>;
+  }
+
+  function renderMessages() {
+    if (!channelMessages || !channelMessages.length) return null;
+
+    return (
+      <div className="px-6 py-4">
+        {channelMessages.map((m: any) => {
+          const owner = m.fromUserId === user.id;
+
+          return (
+            <div
+              key={m.id}
+              className={clsx(
+                "mb-6 flex",
+                owner ? "justify-end" : "justify-start"
+              )}
+            >
+              <div className="flex gap-x-4">
+                {!owner && (
+                  <img
+                    className="h-8 w-8 flex-none rounded-full bg-gray-50"
+                    src={m.from.avatar}
+                    alt="avatar"
+                  />
+                )}
+                <div
+                  className={clsx(
+                    "flex flex-col  overflow-hidden",
+                    owner ? "items-end" : "items-start"
+                  )}
+                >
+                  {owner ? (
+                    <div className="mb-2">
+                      <span className="pr-2 text-xs text-slate-400">
+                        {new Date(m.createdAt).toLocaleString("zh-CN")}
+                      </span>
+                      <span className="text-xs text-slate-500">
+                        {m.from.username}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="mb-2">
+                      <span className="text-xs text-slate-500">
+                        {m.from.username}
+                      </span>
+                      <span className="pl-2 text-xs text-slate-400">
+                        {new Date(m.createdAt).toLocaleString("zh-CN")}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="prose prose-slate max-w-prose rounded bg-white px-3 py-2 text-sm  text-slate-600  shadow">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {m.content}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+
+                {owner && (
+                  <img
+                    className="h-8 w-8 flex-none rounded-full bg-gray-50"
+                    src={m.from.avatar}
+                    alt="avatar"
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
@@ -254,8 +333,8 @@ function ChatPrivate() {
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="shrink-0 grow-0 basis-auto border-b bg-white">
+    <MessageContainer>
+      <MessageHeader>
         {toUser && (
           <div className="flex items-center p-3">
             <img
@@ -266,8 +345,8 @@ function ChatPrivate() {
             <div className="text-md ml-2">{toUser.username}</div>
           </div>
         )}
-      </div>
-      <div className="flex grow flex-col overflow-hidden">
+      </MessageHeader>
+      <MessageBody>
         <div className="grow overflow-y-auto" ref={messageBoxRef}>
           {renderMessages()}
         </div>
@@ -295,9 +374,29 @@ function ChatPrivate() {
             </button>
           </div>
         </div>
-      </div>
+      </MessageBody>
+    </MessageContainer>
+  );
+}
+
+export function MessageBox() {
+  return <div>a</div>;
+}
+
+function MessageContainer({ children }: PropsWithChildren) {
+  return <div className="flex h-full flex-col">{children}</div>;
+}
+
+function MessageHeader({ children }: PropsWithChildren) {
+  return (
+    <div className="shrink-0 grow-0 basis-auto border-b bg-white">
+      {children}
     </div>
   );
+}
+
+function MessageBody({ children }: PropsWithChildren) {
+  return <div className="flex grow flex-col overflow-hidden">{children}</div>;
 }
 
 export { ChatIndex, ChatChannel, ChatPrivate };

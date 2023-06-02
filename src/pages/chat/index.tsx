@@ -118,19 +118,16 @@ function Chat() {
               <Collapsible.Content>
                 {onlineList && onlineList.length ? (
                   onlineList.map((user: any) => {
+                    const isActive = toUserId === user.id;
                     return (
-                      <div
-                        className={
-                          toUserId !== user.id ? "bg-white" : "bg-slate-300"
-                        }
-                      >
+                      <div className={!isActive ? "bg-white" : "bg-slate-200"}>
                         <Link
                           to={`private/${user.id}`}
                           key={user.id}
-                          className="flex
-                          items-center
-                          p-3
-                          "
+                          className={clsx(
+                            "flex items-center p-3  ",
+                            !isActive && "hover:bg-slate-50"
+                          )}
                         >
                           <img
                             className=" h-11 w-11 flex-none rounded-full bg-gray-50"
@@ -164,19 +161,19 @@ function Chat() {
                         !onlineList.find((o: any) => o.username === u.username)
                     )
                     .map((user: any) => {
+                      const isActive = toUserId === user.id;
+
                       return (
                         <div
-                          className={
-                            toUserId !== user.id ? "bg-white" : "bg-slate-300"
-                          }
+                          className={!isActive ? "bg-white" : "bg-slate-200"}
                         >
                           <Link
                             to={`private/${user.id}`}
                             key={user.id}
-                            className="flex
-                          items-center
-                          p-3
-                          "
+                            className={clsx(
+                              "flex items-center p-3  ",
+                              !isActive && "hover:bg-slate-50"
+                            )}
                           >
                             <img
                               className="h-11 w-11 flex-none rounded-full bg-gray-50 brightness-50"
@@ -205,16 +202,18 @@ function Chat() {
                 channels
                   .filter((c: any) => c.userId === user.id)
                   .map((c: any) => {
+                    const isActive = c.id === channelId;
                     return (
                       <div
                         key={c.id}
-                        className={
-                          c.id !== channelId ? "bg-white" : "bg-slate-300"
-                        }
+                        className={!isActive ? "bg-white" : "bg-slate-200"}
                       >
                         <Link
                           to={`channel/${c.id}`}
-                          className="block p-2 text-sm text-slate-700"
+                          className={clsx(
+                            "flex items-center p-3 text-xs text-slate-600",
+                            !isActive && "hover:bg-slate-50"
+                          )}
                         >
                           # {c.name}
                         </Link>
@@ -232,16 +231,18 @@ function Chat() {
                 channels
                   .filter((c: any) => c.userId !== user.id)
                   .map((c: any) => {
+                    const isActive = c.id === channelId;
                     return (
                       <div
                         key={c.id}
-                        className={
-                          c.id !== channelId ? "bg-white" : "bg-slate-300"
-                        }
+                        className={!isActive ? "bg-white" : "bg-slate-200"}
                       >
                         <Link
                           to={`channel/${c.id}`}
-                          className="block p-2 text-sm text-slate-700"
+                          className={clsx(
+                            "flex items-center p-3 text-xs text-slate-600",
+                            !isActive && "hover:bg-slate-50"
+                          )}
                         >
                           # {c.name}
                         </Link>
