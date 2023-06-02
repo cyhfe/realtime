@@ -32,7 +32,7 @@ function ChatChannel() {
   const [channel, setChannel] = useState(null);
   const [users, setUsers] = useState([]);
   const { socketRef, isConnected } = useChat();
-  const messageRef = useRef<HTMLInputElement | null>(null);
+  const messageBoxRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
 
   function onSendMessage(content: string) {
@@ -41,6 +41,14 @@ function ChatChannel() {
       content,
     });
   }
+
+  useEffect(() => {
+    if (!channelMessages || !channelMessages.length) return;
+    function scrollToTop() {
+      messageBoxRef.current?.scrollTo(0, messageBoxRef.current.scrollHeight);
+    }
+    scrollToTop();
+  }, [channelMessages]);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -116,7 +124,7 @@ function ChatChannel() {
         </div>
       </MessageHeader>
       <MessageBody>
-        <MessageBox>
+        <MessageBox ref={messageBoxRef}>
           {channelMessages.map((message: any) => {
             const owner = message.fromUserId === user.id;
             const avatar = message.from.avatar;
