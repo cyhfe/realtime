@@ -1,5 +1,7 @@
 import {
   PropsWithChildren,
+  ReactNode,
+  forwardRef,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -26,7 +28,7 @@ function ChatIndex() {
 
 function ChatChannel() {
   const { channelId } = useParams();
-  const [channelMessages, setChannelMessages] = useState(null);
+  const [channelMessages, setChannelMessages] = useState([]);
   const [channel, setChannel] = useState(null);
   const [users, setUsers] = useState([]);
   const { socketRef, isConnected } = useChat();
@@ -47,8 +49,11 @@ function ChatChannel() {
     function onGetChannel(channel: any) {
       setChannel(channel);
     }
-    function onUpdateChannelMessages(message: any) {
-      setChannelMessages(message);
+    function onUpdateChannelMessages(messages: any) {
+      setChannelMessages(messages);
+    }
+    function onUpdateChannelMessage(message: any) {
+      setChannelMessages((prev) => [...prev, message]);
     }
     function onUpdateChannelUsers(users: any) {
       console.log(users);
@@ -57,11 +62,13 @@ function ChatChannel() {
 
     socket.on("chat/getChannel", onGetChannel);
     socket.on("chat/updateChannelMessages", onUpdateChannelMessages);
+    socket.on("chat/updateChannelMessage", onUpdateChannelMessage);
     socket.on("chat/updateChannelUsers", onUpdateChannelUsers);
 
     return () => {
       socket.off("chat/getChannel", onGetChannel);
       socket.off("chat/updateChannelMessages", onUpdateChannelMessages);
+      socket.off("chat/updateChannelMessage", onUpdateChannelMessage);
       socket.off("chat/updateChannelUsers", onUpdateChannelUsers);
     };
   }, [socketRef]);
@@ -109,7 +116,25 @@ function ChatChannel() {
         </div>
       </MessageHeader>
       <MessageBody>
-        <MessageBox />
+        <MessageBox>
+          {channelMessages.map((message: any) => {
+            const owner = message.fromUserId === user.id;
+            const avatar = message.from.avatar;
+            const username = message.from.username;
+            const { content, createdAt } = message;
+
+            return (
+              <Message
+                key={message.id}
+                avatar={avatar}
+                owner={owner}
+                content={content}
+                createdAt={createdAt}
+                username={username}
+              />
+            );
+          })}
+        </MessageBox>
         <SendMessage onSubmit={onSendMessage} />
       </MessageBody>
     </MessageContainer>
@@ -167,10 +192,6 @@ function ChatPrivate() {
   const { user } = useAuth();
   const messageBoxRef = useRef<HTMLDivElement>(null);
 
-  function scrollToTop() {
-    messageBoxRef.current.scrollTo(0, messageBoxRef.current.scrollHeight);
-  }
-
   function onSendMessage(content: string) {
     socketRef.current?.emit("chat/privateMessage", {
       content,
@@ -178,8 +199,11 @@ function ChatPrivate() {
     });
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (!privateMessages || !privateMessages.length) return;
+    function scrollToTop() {
+      messageBoxRef.current?.scrollTo(0, messageBoxRef.current.scrollHeight);
+    }
     scrollToTop();
   }, [privateMessages]);
 
@@ -231,36 +255,43 @@ function ChatPrivate() {
         )}
       </MessageHeader>
       <MessageBody>
-        <div className="grow overflow-y-auto" ref={messageBoxRef}>
-          <div className="px-6 py-4">
-            {privateMessages.map((message) => {
-              const owner = message.fromUserId === user.id;
-              const avatar = owner ? message.from.avatar : message.to.avatar;
-              const username = message.from.username;
-              const { content, createdAt } = message;
+        <MessageBox ref={messageBoxRef}>
+          {privateMessages.map((message) => {
+            const owner = message.fromUserId === user.id;
+            const avatar = owner ? message.from.avatar : message.to.avatar;
+            const username = message.from.username;
+            const { content, createdAt } = message;
 
-              return (
-                <Message
-                  key={message.id}
-                  avatar={avatar}
-                  owner={owner}
-                  content={content}
-                  createdAt={createdAt}
-                  username={username}
-                />
-              );
-            })}
-          </div>
-        </div>
+            return (
+              <Message
+                key={message.id}
+                avatar={avatar}
+                owner={owner}
+                content={content}
+                createdAt={createdAt}
+                username={username}
+              />
+            );
+          })}
+        </MessageBox>
         <SendMessage onSubmit={onSendMessage} />
       </MessageBody>
     </MessageContainer>
   );
 }
 
-export function MessageBox() {
-  return <div className="grow overflow-y-auto">box</div>;
+interface MessageBoxProps {
+  children: ReactNode;
 }
+export const MessageBox = forwardRef<HTMLDivElement, MessageBoxProps>(
+  function MessageBox({ children }, ref) {
+    return (
+      <div className="grow overflow-y-auto" ref={ref}>
+        <div className="px-6 py-4">{children}</div>
+      </div>
+    );
+  }
+);
 
 interface SendMessageProps {
   onSubmit: (content: string) => void;
