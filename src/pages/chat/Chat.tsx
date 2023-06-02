@@ -9,6 +9,8 @@ import { useChat } from ".";
 import { Online } from "../../components/Online";
 import { useAuth } from "../../context/Auth";
 import clsx from "clsx";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 function noop() {}
 
 function ChatIndex() {
@@ -81,7 +83,25 @@ function ChatChannel() {
           })}
       </div>
       <div>
-        <input type="text" ref={messageRef} />
+        <div className="col-span-full">
+          <label
+            htmlFor="about"
+            className="block text-sm font-medium leading-6 text-gray-900"
+          >
+            About
+          </label>
+          <div className="mt-2">
+            <textarea
+              id="about"
+              name="about"
+              rows={3}
+              className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            ></textarea>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-gray-600">
+            Write a few sentences about yourself.
+          </p>
+        </div>
         <button
           onClick={() => {
             socketRef.current.emit("chat/channelMessage", {
@@ -102,7 +122,7 @@ function ChatPrivate() {
   const { socketRef, isConnected } = useChat();
   const [privateMessages, setPrivateMessages] = useState([]);
   const [toUser, setToUser] = useState(null);
-  const messageRef = useRef<HTMLInputElement | null>(null);
+  const messageRef = useRef<HTMLTextAreaElement | null>(null);
   const { user } = useAuth();
   const messageBoxRef = useRef<HTMLDivElement>(null);
 
@@ -168,9 +188,17 @@ function ChatPrivate() {
                       {m.from.username}
                     </span>
                   </div>
-
+                  {/* <div className="prose prose-slate">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {m.content}
+                    </ReactMarkdown>
+                  </div> */}
                   <div className="text-md max-w-prose rounded bg-white p-2  text-slate-700  shadow">
-                    {m.content}
+                    <div className="prose ">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {m.content}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
 
@@ -200,7 +228,9 @@ function ChatPrivate() {
                   </div>
 
                   <div className="text-md max-w-prose rounded bg-white px-3 py-2  text-slate-700  shadow">
-                    {m.content}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {m.content}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>
@@ -229,18 +259,28 @@ function ChatPrivate() {
         <div className="grow overflow-y-auto" ref={messageBoxRef}>
           {renderMessages()}
         </div>
-        <div className="shrink-0 grow-0 basis-auto">
-          <input type="text" ref={messageRef} />
-          <button
-            onClick={() => {
-              socketRef.current?.emit("chat/privateMessage", {
-                content: messageRef.current.value,
-                to: toUserId,
-              });
-            }}
-          >
-            发送
-          </button>
+        <div className="shrink-0 grow-0 basis-auto bg-white">
+          {/* <textarea ref={messageRef} /> */}
+          <div className="p-2">
+            <textarea
+              ref={messageRef}
+              id="about"
+              name="about"
+              rows={1}
+              placeholder="enter 发送 ctrl enter 换行"
+              className="unset p=2 block h-24 w-full text-sm placeholder:text-slate-400"
+            ></textarea>
+            <button
+              onClick={() => {
+                socketRef.current?.emit("chat/privateMessage", {
+                  content: messageRef.current.value,
+                  to: toUserId,
+                });
+              }}
+            >
+              发送
+            </button>
+          </div>
         </div>
       </div>
     </div>
