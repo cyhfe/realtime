@@ -9,7 +9,4 @@
   .unset {
     all: unset;
   }
-  .full-height {
-    height: calc(100vh);
-  }
 }

@@ -130,6 +130,9 @@ function Canvas() {
     socket.on("drawing", draw);
     socket.on("clear", clear);
     socket.on("changeStrokeColor", setStrokeColor);
+    socket.on("updateUsers", (users: any) => {
+      console.log(users);
+    });
     socket.connect();
 
     return () => {
@@ -145,7 +148,7 @@ function Canvas() {
   }, [draw, setOnline, user]);
 
   return (
-    <div className="full-height  relative " ref={containerRef}>
+    <div className="relative h-full w-full" ref={containerRef}>
       <div className="absolute  right-1/2 top-5 flex translate-x-1/2 items-center gap-x-1 divide-x  border border-slate-50 bg-slate-50 p-2 text-slate-400 shadow-md">
         <div className="flex items-center pr-1">
           <button className=" block  p-1">

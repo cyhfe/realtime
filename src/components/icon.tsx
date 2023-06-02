@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { ComponentPropsWithoutRef } from "react";
 
 export function IconChat(props: ComponentPropsWithoutRef<"svg">) {
@@ -20,7 +21,10 @@ export function IconChat(props: ComponentPropsWithoutRef<"svg">) {
   );
 }
 
-export function IconMusic(props: ComponentPropsWithoutRef<"svg">) {
+export function IconMusic({
+  className,
+  ...rest
+}: ComponentPropsWithoutRef<"svg">) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -28,8 +32,8 @@ export function IconMusic(props: ComponentPropsWithoutRef<"svg">) {
       viewBox="0 0 24 24"
       strokeWidth={1.5}
       stroke="currentColor"
-      className="h-6 w-6"
-      {...props}
+      className={clsx("h-6 w-6", className)}
+      {...rest}
     >
       <path
         strokeLinecap="round"
