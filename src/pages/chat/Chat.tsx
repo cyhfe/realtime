@@ -141,54 +141,64 @@ function ChatPrivate() {
   function renderMessages() {
     if (!privateMessages || !privateMessages.length) return null;
 
-    return privateMessages.map((m: any) => {
-      const owner = m.fromUserId === user.id;
+    return (
+      <div>
+        {privateMessages.map((m: any) => {
+          const owner = m.fromUserId === user.id;
 
-      return (
-        <div
-          key={m.id}
-          className={clsx("flex", owner ? "justify-end" : "justify-start")}
-        >
-          <div>
-            <img
-              className="h-11 w-11 flex-none rounded-full bg-gray-50 "
-              src={m.from.avatar}
-              alt="avatar"
-            />
-          </div>
-          <div>{m.createdAt}</div>
-          {m.content}
-        </div>
-      );
-    });
+          return (
+            <div
+              key={m.id}
+              className={clsx("flex ", owner ? "justify-end" : "justify-start")}
+            >
+              <div>
+                <img
+                  className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+                  src={m.from.avatar}
+                  alt="avatar"
+                />
+              </div>
+              <div>{m.createdAt}</div>
+              {m.content}
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
-    <div>
-      {toUser && (
-        <div className="bg-white">
-          <img
-            className="h-11 w-11 flex-none rounded-full bg-gray-50 "
-            src={toUser.avatar}
-            alt="avatar"
-          />
-          <div className="ml-4 flex flex-col ">
-            <div>{toUser.username}</div>
+    <div className="flex h-full flex-col">
+      <div className="shrink-0 grow-0 basis-auto">
+        {toUser && (
+          <div className="bg-white">
+            <img
+              className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+              src={toUser.avatar}
+              alt="avatar"
+            />
+            <div className="ml-4 flex flex-col ">
+              <div>{toUser.username}</div>
+            </div>
           </div>
+        )}
+      </div>
+      <div className="flex grow flex-col overflow-hidden">
+        <div className="grow overflow-auto">{renderMessages()}</div>
+        <div className="shrink-0 grow-0 basis-auto">
+          <input type="text" ref={messageRef} />
+          <button
+            onClick={() => {
+              socketRef.current?.emit("chat/privateMessage", {
+                content: messageRef.current.value,
+                to: toUserId,
+              });
+            }}
+          >
+            发送
+          </button>
         </div>
-      )}
-      <div className="flex flex-col">{renderMessages()}</div>
-      <input type="text" ref={messageRef} />
-      <button
-        onClick={() => {
-          socketRef.current?.emit("chat/privateMessage", {
-            content: messageRef.current.value,
-            to: toUserId,
-          });
-        }}
-      >
-        发送
-      </button>
+      </div>
     </div>
   );
 }
