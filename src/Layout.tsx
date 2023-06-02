@@ -9,7 +9,7 @@ export default function Layout() {
     <Fullscreen>
       <div className="flex h-full flex-col">
         <div className="flex  justify-center border-b  bg-white ">
-          <div className="container flex justify-between">
+          <div className="flex w-full justify-between">
             <div className="flex gap-x-3">
               <Link to="/chat">
                 chat
@@ -30,7 +30,7 @@ export default function Layout() {
                 <div>{user.username}</div>
                 <Online online={online} />
                 <img
-                  className=" h-11 w-11 flex-none rounded-full bg-gray-50"
+                  className="block h-11 w-11 flex-none rounded-full bg-gray-50"
                   src={user.avatar}
                   alt="avatar"
                 />

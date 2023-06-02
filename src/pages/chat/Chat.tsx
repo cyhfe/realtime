@@ -104,6 +104,16 @@ function ChatPrivate() {
   const [toUser, setToUser] = useState(null);
   const messageRef = useRef<HTMLInputElement | null>(null);
   const { user } = useAuth();
+  const messageBoxRef = useRef<HTMLDivElement>(null);
+
+  function scrollToTop() {
+    messageBoxRef.current.scrollTo(0, messageBoxRef.current.scrollHeight);
+  }
+
+  useLayoutEffect(() => {
+    if (!privateMessages || !privateMessages.length) return;
+    scrollToTop();
+  }, [privateMessages]);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -142,24 +152,58 @@ function ChatPrivate() {
     if (!privateMessages || !privateMessages.length) return null;
 
     return (
-      <div>
+      <div className="px-6 py-4">
         {privateMessages.map((m: any) => {
           const owner = m.fromUserId === user.id;
 
-          return (
-            <div
-              key={m.id}
-              className={clsx("flex ", owner ? "justify-end" : "justify-start")}
-            >
-              <div>
+          return owner ? (
+            <div key={m.id} className={"mb-6 flex justify-end"}>
+              <div className="flex gap-x-4">
+                <div className="flex flex-col items-end overflow-hidden">
+                  <div className="mb-2">
+                    <span className="pr-2 text-xs text-slate-400">
+                      {new Date(m.createdAt).toLocaleString("zh-CN")}
+                    </span>
+                    <span className="text-md  text-slate-500">
+                      {m.from.username}
+                    </span>
+                  </div>
+
+                  <div className="text-md max-w-prose rounded bg-white p-2  text-slate-700  shadow">
+                    {m.content}
+                  </div>
+                </div>
+
                 <img
-                  className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+                  className="h-8 w-8 flex-none rounded-full bg-gray-50"
                   src={m.from.avatar}
                   alt="avatar"
                 />
               </div>
-              <div>{m.createdAt}</div>
-              {m.content}
+            </div>
+          ) : (
+            <div key={m.id} className={"mb-6 flex justify-start"}>
+              <div className="flex gap-x-4">
+                <img
+                  className="h-8 w-8 flex-none rounded-full bg-gray-50"
+                  src={m.from.avatar}
+                  alt="avatar"
+                />
+                <div className="flex flex-col items-start overflow-hidden">
+                  <div className="mb-2">
+                    <span className="text-md  text-slate-500">
+                      {m.from.username}
+                    </span>
+                    <span className="pl-2 text-xs text-slate-400">
+                      {new Date(m.createdAt).toLocaleString("zh-CN")}
+                    </span>
+                  </div>
+
+                  <div className="text-md max-w-prose rounded bg-white px-3 py-2  text-slate-700  shadow">
+                    {m.content}
+                  </div>
+                </div>
+              </div>
             </div>
           );
         })}
@@ -169,22 +213,22 @@ function ChatPrivate() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="shrink-0 grow-0 basis-auto">
+      <div className="shrink-0 grow-0 basis-auto border-b bg-white">
         {toUser && (
-          <div className="bg-white">
+          <div className="flex items-center p-3">
             <img
-              className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+              className="h-10 w-10 flex-none rounded-full bg-gray-50 "
               src={toUser.avatar}
               alt="avatar"
             />
-            <div className="ml-4 flex flex-col ">
-              <div>{toUser.username}</div>
-            </div>
+            <div className="text-md ml-2">{toUser.username}</div>
           </div>
         )}
       </div>
       <div className="flex grow flex-col overflow-hidden">
-        <div className="grow overflow-auto">{renderMessages()}</div>
+        <div className="grow overflow-y-auto" ref={messageBoxRef}>
+          {renderMessages()}
+        </div>
         <div className="shrink-0 grow-0 basis-auto">
           <input type="text" ref={messageRef} />
           <button

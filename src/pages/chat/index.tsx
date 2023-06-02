@@ -108,7 +108,7 @@ function Chat() {
 
   return (
     <ChatContext.Provider value={ctx}>
-      <div className="flex h-full">
+      <div className="flex h-full w-full">
         <div className=" basis-60  overflow-y-auto overflow-x-hidden  border-r ">
           <div className="text-sm text-slate-600">
             <Collapsible.Root defaultOpen className="mb-2">
@@ -251,8 +251,8 @@ function Chat() {
             </Collapsible.Content>
           </Collapsible.Root>
         </div>
-        <div className="flex grow items-center justify-center">
-          <div className="bg-slate-150 h-full w-full">
+        <div className="overflow-x-hidde flex grow items-center justify-center">
+          <div className="h-full w-full bg-slate-200">
             <Outlet />
           </div>
         </div>
