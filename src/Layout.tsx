@@ -30,7 +30,7 @@ export default function Layout() {
                 <div>{user.username}</div>
                 <Online online={online} />
                 <img
-                  className="block h-11 w-11 flex-none rounded-full bg-gray-50"
+                  className="block h-10 w-10 flex-none rounded-full bg-gray-50"
                   src={user.avatar}
                   alt="avatar"
                 />
@@ -51,7 +51,7 @@ export default function Layout() {
 
 function Fullscreen({ children }: PropsWithChildren) {
   return (
-    <div className="relative flex h-full w-full  overflow-hidden bg-slate-100">
+    <div className="relative flex h-full w-full  overflow-hidden bg-slate-100 text-base text-slate-600">
       <div className="h-full w-full">{children}</div>
     </div>
   );
