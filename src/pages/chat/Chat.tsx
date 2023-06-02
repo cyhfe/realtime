@@ -147,49 +147,6 @@ function ChatChannel() {
       </MessageBody>
     </MessageContainer>
   );
-  // return (
-  //   <div>
-
-  //     <div>聊天内容</div>
-  //     <div>
-  //       {channelMessages &&
-  //         channelMessages.map((m: any) => {
-  //           return <div>{m.content}</div>;
-  //         })}
-  //     </div>
-  //     <div>
-  //       <div className="col-span-full">
-  //         <label
-  //           htmlFor="about"
-  //           className="block text-sm font-medium leading-6 text-gray-900"
-  //         >
-  //           About
-  //         </label>
-  //         <div className="mt-2">
-  //           <textarea
-  //             id="about"
-  //             name="about"
-  //             rows={3}
-  //             className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-  //           ></textarea>
-  //         </div>
-  //         <p className="mt-3 text-sm leading-6 text-gray-600">
-  //           Write a few sentences about yourself.
-  //         </p>
-  //       </div>
-  //       <button
-  //         onClick={() => {
-  //           socketRef.current.emit("chat/channelMessage", {
-  //             channelId,
-  //             content: messageRef.current.value,
-  //           });
-  //         }}
-  //       >
-  //         发送
-  //       </button>
-  //     </div>
-  //   </div>
-  // );
 }
 
 function ChatPrivate() {
@@ -425,77 +382,5 @@ function Message({
     </div>
   );
 }
-
-// function renderMessages() {
-//   if (!privateMessages || !privateMessages.length) return null;
-
-//   return (
-//     <div className="px-6 py-4">
-//       {privateMessages.map((m: any) => {
-//         const owner = m.fromUserId === user.id;
-
-//         return (
-//           <div
-//             key={m.id}
-//             className={clsx(
-//               "mb-6 flex",
-//               owner ? "justify-end" : "justify-start"
-//             )}
-//           >
-//             <div className="flex gap-x-4">
-//               {!owner && (
-//                 <img
-//                   className="h-8 w-8 flex-none rounded-full bg-gray-50"
-//                   src={m.from.avatar}
-//                   alt="avatar"
-//                 />
-//               )}
-//               <div
-//                 className={clsx(
-//                   "flex flex-col  overflow-hidden",
-//                   owner ? "items-end" : "items-start"
-//                 )}
-//               >
-//                 {owner ? (
-//                   <div className="mb-2">
-//                     <span className="pr-2 text-xs text-slate-400">
-//                       {new Date(m.createdAt).toLocaleString("zh-CN")}
-//                     </span>
-//                     <span className="text-xs text-slate-500">
-//                       {m.from.username}
-//                     </span>
-//                   </div>
-//                 ) : (
-//                   <div className="mb-2">
-//                     <span className="text-xs text-slate-500">
-//                       {m.from.username}
-//                     </span>
-//                     <span className="pl-2 text-xs text-slate-400">
-//                       {new Date(m.createdAt).toLocaleString("zh-CN")}
-//                     </span>
-//                   </div>
-//                 )}
-
-//                 <div className="prose prose-slate max-w-prose rounded bg-white px-3 py-2 text-sm  text-slate-600  shadow">
-//                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-//                     {m.content}
-//                   </ReactMarkdown>
-//                 </div>
-//               </div>
-
-//               {owner && (
-//                 <img
-//                   className="h-8 w-8 flex-none rounded-full bg-gray-50"
-//                   src={m.from.avatar}
-//                   alt="avatar"
-//                 />
-//               )}
-//             </div>
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// }
 
 export { ChatIndex, ChatChannel, ChatPrivate };
