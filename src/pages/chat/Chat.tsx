@@ -6,6 +6,9 @@ import {
   useParams,
 } from "react-router-dom";
 import { useChat } from ".";
+import { Online } from "../../components/Online";
+import { useAuth } from "../../context/Auth";
+import clsx from "clsx";
 function noop() {}
 
 function ChatIndex() {
@@ -97,8 +100,10 @@ function ChatChannel() {
 function ChatPrivate() {
   const { toUserId } = useParams();
   const { socketRef, isConnected } = useChat();
-  const [privateMessages, setPrivateMessages] = useState(null);
+  const [privateMessages, setPrivateMessages] = useState([]);
+  const [toUser, setToUser] = useState(null);
   const messageRef = useRef<HTMLInputElement | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -109,28 +114,64 @@ function ChatPrivate() {
   useEffect(() => {
     const socket = socketRef.current;
     if (!socket) return noop;
+    function onNewPrivateMessage(message: any) {
+      console.log(message);
+      setPrivateMessages((messages) => [...messages, message]);
+    }
     function onUpdatePrivateMessages(messages: any) {
       setPrivateMessages(messages);
     }
-    socket.on("chat/updatePrivateMessages", onUpdatePrivateMessages);
+    socket.emit("updatePrivateMessages", toUserId);
+    socket.on("updatePrivateMessages", onUpdatePrivateMessages);
+    socket.on("chat/newPrivateMessage", onNewPrivateMessage);
     return () => {
-      socket.off("chat/updatePrivateMessages", onUpdatePrivateMessages);
+      socket.off("chat/newPrivateMessage", onNewPrivateMessage);
     };
-  }, [socketRef]);
+  }, [socketRef, toUserId]);
 
   if (!isConnected) {
     return <Navigate to="/chat"></Navigate>;
   }
 
+  function renderMessages() {
+    if (!privateMessages || !privateMessages.length) return null;
+
+    return privateMessages.map((m: any) => {
+      const owner = m.fromUserId === user.id;
+
+      return (
+        <div
+          key={m.id}
+          className={clsx("flex", owner ? "justify-end" : "justify-start")}
+        >
+          <div>
+            <img
+              className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+              src={m.from.avatar}
+              alt="avatar"
+            />
+          </div>
+          {m.content}
+        </div>
+      );
+    });
+  }
+
   return (
     <div>
-      <div>
-        <div>聊天内容</div>
-        {privateMessages &&
-          privateMessages.map((m: any) => {
-            return <div key={m.id}>{m.content}</div>;
-          })}
-      </div>
+      {toUser && (
+        <div className="bg-white">
+          <img
+            className="h-11 w-11 flex-none rounded-full bg-gray-50 "
+            src={toUser.avatar}
+            alt="avatar"
+          />
+          <div className="ml-4 flex flex-col ">
+            <div>{toUser.username}</div>
+          </div>
+        </div>
+      )}
+      <div className="flex flex-col">{renderMessages()}</div>
       <input type="text" ref={messageRef} />
       <button
         onClick={() => {

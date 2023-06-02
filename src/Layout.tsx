@@ -8,7 +8,7 @@ export default function Layout() {
   return (
     <Fullscreen>
       <div className="flex h-full flex-col">
-        <div className="flex  justify-center border-b-2 border-slate-200 bg-white p-5">
+        <div className="flex  justify-center border-b  bg-white ">
           <div className="container flex justify-between">
             <div className="flex gap-x-3">
               <Link to="/chat">
@@ -42,15 +42,6 @@ export default function Layout() {
           </div>
         </div>
         <div className="grow overflow-hidden">
-          {/* <div className="h-full w-20  overflow-scroll">
-            <div
-              style={{
-                height: "1000px ",
-              }}
-            >
-              asxs
-            </div>
-          </div> */}
           <Outlet />
         </div>
       </div>

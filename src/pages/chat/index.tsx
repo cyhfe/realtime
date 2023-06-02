@@ -109,14 +109,14 @@ function Chat() {
   return (
     <ChatContext.Provider value={ctx}>
       <div className="flex h-full">
-        <div className=" basis-60  overflow-y-auto overflow-x-hidden  border-r-2 border-slate-200 ">
+        <div className=" basis-60  overflow-y-auto overflow-x-hidden  border-r ">
           <div className="text-sm text-slate-600">
             <Collapsible.Root defaultOpen className="mb-2">
               <Collapsible.Trigger className="" asChild>
                 <button className={title}>在线</button>
               </Collapsible.Trigger>
               <Collapsible.Content>
-                {onlineList &&
+                {onlineList && onlineList.length ? (
                   onlineList.map((user: any) => {
                     return (
                       <div
@@ -137,14 +137,19 @@ function Chat() {
                             src={user.avatar}
                             alt="avatar"
                           />
-                          <div className="ml-2 flex flex-col ">
+                          <div className="ml-4 flex flex-col ">
                             <div>{user.username}</div>
                             <Online online />
                           </div>
                         </Link>
                       </div>
                     );
-                  })}
+                  })
+                ) : (
+                  <div className="px-3 text-xs text-slate-400">
+                    暂时没有在线用户,试试给离线用户发送消息吧!
+                  </div>
+                )}
               </Collapsible.Content>
             </Collapsible.Root>
             <Collapsible.Root defaultOpen>
@@ -178,7 +183,7 @@ function Chat() {
                               src={user.avatar}
                               alt="avatar"
                             />
-                            <div className="ml-2 flex flex-col ">
+                            <div className="ml-4 flex flex-col ">
                               <div>{user.username}</div>
                               <Online />
                             </div>
@@ -190,7 +195,7 @@ function Chat() {
             </Collapsible.Root>
           </div>
         </div>
-        <div className=" basis-60 overflow-y-auto overflow-x-hidden  border-r-2 border-slate-200 ">
+        <div className=" basis-72 overflow-y-auto overflow-x-hidden  border-r  ">
           <Collapsible.Root defaultOpen className="mb-2">
             <Collapsible.Trigger className="" asChild>
               <button className={title}>我的频道</button>
@@ -247,7 +252,7 @@ function Chat() {
           </Collapsible.Root>
         </div>
         <div className="flex grow items-center justify-center">
-          <div className="flex h-full w-full items-center justify-center p-4">
+          <div className="bg-slate-150 h-full w-full">
             <Outlet />
           </div>
         </div>
