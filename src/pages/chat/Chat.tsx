@@ -115,15 +115,20 @@ function ChatPrivate() {
     const socket = socketRef.current;
     if (!socket) return noop;
     function onNewPrivateMessage(message: any) {
-      console.log(message);
       setPrivateMessages((messages) => [...messages, message]);
     }
     function onUpdatePrivateMessages(messages: any) {
       setPrivateMessages(messages);
     }
+    function onUpdateToUser(toUser: any) {
+      setToUser(toUser);
+    }
     socket.emit("updatePrivateMessages", toUserId);
+    socket.emit("updateToUser", toUserId);
+
     socket.on("updatePrivateMessages", onUpdatePrivateMessages);
     socket.on("chat/newPrivateMessage", onNewPrivateMessage);
+    socket.on("updateToUser", onUpdateToUser);
     return () => {
       socket.off("chat/newPrivateMessage", onNewPrivateMessage);
     };
@@ -151,6 +156,7 @@ function ChatPrivate() {
               alt="avatar"
             />
           </div>
+          <div>{m.createdAt}</div>
           {m.content}
         </div>
       );
