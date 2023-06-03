@@ -20,12 +20,13 @@ export default function Layout() {
       <div className="flex h-full flex-col">
         <div className="flex  justify-center border-b  bg-white ">
           <div className="flex w-full justify-between">
-            <div className="flex text-slate-500">
+            <div className="flex text-slate-500 ">
               <Link
                 to="/chat"
                 className={clsx(
                   "block  p-4",
-                  isChat && "bg-slate-200 text-slate-800"
+                  isChat && "bg-slate-300 text-slate-800",
+                  !isChat && "hover:bg-slate-200"
                 )}
               >
                 <IconChat />
@@ -34,7 +35,8 @@ export default function Layout() {
                 to="/canvas"
                 className={clsx(
                   "block  p-4",
-                  isCanvas && "bg-slate-200 text-slate-800"
+                  isCanvas && "bg-slate-300 text-slate-800",
+                  !isCanvas && "hover:bg-slate-200"
                 )}
               >
                 <IconCanvas />
@@ -42,24 +44,29 @@ export default function Layout() {
               <Link
                 to="/music"
                 className={clsx(
-                  "block  p-4",
-                  isMusic && "bg-slate-200 text-slate-900"
+                  "block  p-4 ",
+                  isMusic && "bg-slate-300 text-slate-900",
+                  !isMusic && "hover:bg-slate-200"
                 )}
               >
-                <IconMusic className="" />
+                <IconMusic />
               </Link>
             </div>
-            <div className="flex gap-x-3">
-              <div className="flex">
-                <div>{user.username}</div>
+            <div className="mr-8 flex items-center gap-x-3">
+              <img
+                className="block h-9 w-9 flex-none rounded-full bg-gray-50"
+                src={user.avatar}
+                alt="avatar"
+              />
+              <div className="flex flex-col items-start">
+                <div className="text-sm">{user.username}</div>
                 <Online online={online} />
-                <img
-                  className="block h-10 w-10 flex-none rounded-full bg-gray-50"
-                  src={user.avatar}
-                  alt="avatar"
-                />
               </div>
-              <button onClick={logout}>
+
+              <button
+                onClick={logout}
+                className="block  p-4 text-slate-800 hover:bg-slate-300"
+              >
                 <IconLogout />
               </button>
             </div>

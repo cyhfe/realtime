@@ -19,7 +19,7 @@ function noop() {}
 
 function ChatIndex() {
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="mt-44 flex h-full items-start justify-center text-sm text-slate-400">
       请选择一个用户或者频道开始聊天吧!
     </div>
   );
@@ -220,11 +220,11 @@ function ChatPrivate() {
         {toUser && (
           <div className="flex items-center p-3">
             <img
-              className="h-10 w-10 flex-none rounded-full bg-gray-50 "
+              className="h-9 w-9 flex-none rounded-full bg-gray-50 "
               src={toUser.avatar}
               alt="avatar"
             />
-            <div className="text-md ml-2">{toUser.username}</div>
+            <div className="ml-2 text-sm text-slate-600">{toUser.username}</div>
           </div>
         )}
       </MessageHeader>
