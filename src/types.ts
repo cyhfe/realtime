@@ -4,3 +4,9 @@ export interface IChannel {
   name: string;
   userId: string;
 }
+
+export interface User {
+  username: string;
+  id: string;
+  avatar: string;
+}

@@ -16,7 +16,7 @@ import clsx from "clsx";
 import { IconClose } from "../../components/icon";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Toast, ToastHandler } from "../../components/Toast";
-import { IChannel } from "../../types";
+import { IChannel, User } from "../../types";
 
 interface ChatContextValue {
   socketRef: React.MutableRefObject<Socket | null>;
@@ -32,11 +32,11 @@ export function useChat() {
 
 function Chat() {
   const [isConnected, setIsConnected] = useState(false);
-  const [onlineList, setOnlineList] = useState(null);
+  const [onlineList, setOnlineList] = useState<User[] | null>(null);
   const { user, setOnline } = useAuth();
   const socketRef = useRef<Socket | null>(null);
-  const [users, setUsers] = useState(null);
-  const [channels, setChannels] = useState<IChannel[]>([]);
+  const [users, setUsers] = useState<User[] | null>(null);
+  const [channels, setChannels] = useState<IChannel[] | null>(null);
   const { toUserId, channelId } = useParams();
   const errorToastRef = useRef<ToastHandler>(null);
 
@@ -78,19 +78,18 @@ function Chat() {
       setIsConnected(false);
     }
 
-    function onUpdateOnlineList(users: any) {
-      const usersList = JSON.parse(users);
-      const usersWithoutSelf = usersList.filter(
+    function onUpdateOnlineList(users: User[]) {
+      const usersWithoutSelf = users.filter(
         (u) => u.username !== user?.username
       );
       setOnlineList(usersWithoutSelf);
     }
 
-    function onUpdateChannels(channels: any) {
+    function onUpdateChannels(channels: IChannel[]) {
       setChannels(channels);
     }
 
-    function onUpdateUsers(users: any) {
+    function onUpdateUsers(users: User[]) {
       setUsers(users);
     }
 
@@ -131,9 +130,12 @@ function Chat() {
 
   const title = clsx("p-2 text-xs text-slate-600");
   if (!user) return null;
+  if (!channelId) {
+    return navagate("/chat");
+  }
 
-  const ownChannel = channels.filter((c) => c.userId === user.id);
-  const otherChanner = channels.filter((c) => c.userId !== user.id);
+  const ownChannel = channels?.filter((c) => c.userId === user.id);
+  const otherChanner = channels?.filter((c) => c.userId !== user.id);
 
   return (
     <ChatContext.Provider value={ctx}>
@@ -189,10 +191,9 @@ function Chat() {
                 {users &&
                   users
                     .filter(
-                      (u: any) =>
-                        !onlineList.find((o: any) => o.username === u.username)
+                      (u) => !onlineList?.find((o) => o.username === u.username)
                     )
-                    .map((user: any) => {
+                    .map((user) => {
                       const isActive = toUserId === user.id;
 
                       return (
@@ -239,7 +240,7 @@ function Chat() {
               <button className={title}>我的频道</button>
             </Collapsible.Trigger>
             <Collapsible.Content className="divide-y divide-slate-100">
-              {!ownChannel.length && (
+              {!ownChannel?.length && (
                 <div className="p-2 text-xs text-slate-400">
                   试试去创建一个频道吧
                 </div>
@@ -406,7 +407,7 @@ function Channel({ channel, channelId, onSubmit }: ChannelProps) {
                   <button
                     onClick={() => {
                       if (
-                        deleteChannelInputRef.current.value === channel.name
+                        deleteChannelInputRef.current?.value === channel.name
                       ) {
                         onSubmit(channel.id);
                       }
