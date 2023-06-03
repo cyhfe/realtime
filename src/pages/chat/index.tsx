@@ -14,7 +14,7 @@ import { Link, Outlet, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { Online } from "../../components/Online";
 import clsx from "clsx";
-import { IconClose } from "../../components/icon";
+import { IconClose, IconPlus } from "../../components/icon";
 import * as Dialog from "@radix-ui/react-dialog";
 
 const ChatContext = createContext(null);
@@ -200,6 +200,12 @@ function Chat() {
           </div>
         </div>
         <div className=" min-w-min basis-60	 overflow-y-auto overflow-x-hidden  border-r  ">
+          <div className="p-2">
+            <button className=" rounded border border-slate-50 bg-white px-2 py-1 text-xs  text-slate-500  shadow transition-colors hover:bg-slate-400 hover:text-white	hover:shadow-none">
+              <span>创建频道</span>
+            </button>
+          </div>
+
           <Collapsible.Root defaultOpen className="mb-2">
             <Collapsible.Trigger className="" asChild>
               <button className={title}>我的频道</button>

@@ -150,7 +150,7 @@ function Canvas() {
 
   return (
     <div className="relative h-full w-full" ref={containerRef}>
-      <div className="absolute left-4 top-4 flex h-full flex-col -space-y-2 overflow-y-scroll">
+      <div className="absolute left-4 top-4 flex h-full flex-col -space-y-2 overflow-hidden">
         {users.map((user: any) => {
           return (
             <>
