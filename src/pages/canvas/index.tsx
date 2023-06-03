@@ -5,11 +5,12 @@ import {
   useRef,
   useState,
 } from "react";
-import { io } from "socket.io-client";
+import { Socket, io } from "socket.io-client";
 import { AUTH_BASE_URL, COLOR } from "../../utils/const";
 import { useAuth } from "../../context/Auth";
 import { useThrottle } from "../../hooks/useThrottle";
 import { PenIcon, TrashIcon } from "./icon";
+import { User } from "../../types";
 interface Current {
   x: number;
   y: number;
@@ -26,13 +27,13 @@ const colors = [COLOR.Green, COLOR.Red, COLOR.Slate, COLOR.Violet];
 
 function Canvas() {
   const { user, setOnline } = useAuth();
-  const socketRef = useRef(null);
+  const socketRef = useRef<Socket | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [current, setCurrent] = useState<Current | null>(null);
   const [strokeColor, setStrokeColor] = useState(COLOR.Slate);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[] | null>(null);
   // reflow
   useLayoutEffect(() => {
     function onResize() {
@@ -50,10 +51,13 @@ function Canvas() {
 
   const draw = useCallback(
     function draw(line: Line) {
-      const { px, py, nx, ny } = line;
       const el = canvasRef.current;
+      const canvas = canvasRef.current;
+      if (!el || !canvas) return;
+      const { px, py, nx, ny } = line;
       const ctx = el.getContext("2d");
-      const { width, height } = canvasRef.current.getBoundingClientRect();
+      if (!ctx) return;
+      const { width, height } = canvas.getBoundingClientRect();
       ctx.beginPath();
       ctx.moveTo(px * width, py * height);
       ctx.lineTo(nx * width, ny * height);
@@ -68,15 +72,19 @@ function Canvas() {
 
   function clear() {
     const el = canvasRef.current;
+    const canvas = canvasRef.current;
+    if (!el || !canvas) return;
     const ctx = el.getContext("2d");
-    const { width, height } = canvasRef.current.getBoundingClientRect();
+    if (!ctx) return;
+    const { width, height } = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, width, height);
   }
 
   function onMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     setIsDrawing(true);
-    const { top, left, width, height } =
-      canvasRef.current.getBoundingClientRect();
+    const { top, left, width, height } = canvas.getBoundingClientRect();
     const x = (e.clientX - left) / width;
     const y = (e.clientY - top) / height;
     setCurrent({ x, y });
@@ -91,10 +99,11 @@ function Canvas() {
   const onMouseMove = useThrottle(function onMouseMove(
     e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
   ) {
-    if (!isDrawing) return;
+    if (!isDrawing || !current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const { top, left, width, height } =
-      canvasRef.current.getBoundingClientRect();
+    const { top, left, width, height } = canvas.getBoundingClientRect();
     const x = (e.clientX - left) / width;
     const y = (e.clientY - top) / height;
 
@@ -105,7 +114,7 @@ function Canvas() {
       ny: y,
     };
 
-    socketRef.current.emit("drawing", line);
+    socketRef.current?.emit("drawing", line);
 
     draw(line);
   },
@@ -132,7 +141,7 @@ function Canvas() {
     socket.on("drawing", draw);
     socket.on("clear", clear);
     socket.on("changeStrokeColor", setStrokeColor);
-    socket.on("updateUsers", (users: any) => {
+    socket.on("updateUsers", (users: User[]) => {
       setUsers(users);
     });
     socket.connect();
@@ -152,17 +161,18 @@ function Canvas() {
   return (
     <div className="relative h-full w-full" ref={containerRef}>
       <div className="absolute left-4 top-4 flex h-full flex-col -space-y-2 overflow-hidden">
-        {users.map((user: any) => {
-          return (
-            <>
-              <img
-                className="inline-block h-11 w-11 rounded-full ring-2 ring-white"
-                src={user.avatar}
-                alt="avatar"
-              />
-            </>
-          );
-        })}
+        {users &&
+          users.map((user: any) => {
+            return (
+              <>
+                <img
+                  className="inline-block h-11 w-11 rounded-full ring-2 ring-white"
+                  src={user.avatar}
+                  alt="avatar"
+                />
+              </>
+            );
+          })}
       </div>
 
       <div className="absolute  right-1/2 top-5 flex translate-x-1/2 items-center gap-x-1 divide-x  border border-slate-50 bg-slate-50 p-2 text-slate-400 shadow-md">
@@ -182,7 +192,7 @@ function Canvas() {
                 }}
                 onClick={() => {
                   setStrokeColor(color);
-                  socketRef.current.emit("changeStrokeColor", color);
+                  socketRef.current?.emit("changeStrokeColor", color);
                 }}
               >
                 <div
@@ -199,7 +209,7 @@ function Canvas() {
           <button
             onClick={() => {
               clear();
-              socketRef.current.emit("clear");
+              socketRef.current?.emit("clear");
             }}
           >
             <TrashIcon />

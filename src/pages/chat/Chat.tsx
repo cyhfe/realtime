@@ -6,12 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  Navigate,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import { useChat } from ".";
 import { useAuth } from "../../context/Auth";
 import clsx from "clsx";
@@ -237,7 +232,7 @@ function ChatPrivate() {
         <MessageBox ref={messageBoxRef}>
           {privateMessages &&
             privateMessages.map((message) => {
-              const owner = message.fromUserId === user.id;
+              const owner = message.fromUserId === user?.id;
               const avatar = owner ? message.from.avatar : message.to.avatar;
               const username = message.from.username;
               const { content, createdAt } = message;
