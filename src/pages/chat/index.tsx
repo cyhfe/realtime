@@ -28,10 +28,6 @@ function Chat() {
   const { user, setOnline } = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const [users, setUsers] = useState(null);
-  const messageRef = useRef<HTMLInputElement | null>(null);
-  const [to, setTo] = useState(null);
-  const [privateMessages, setPrivateMessages] = useState(null);
-  const newChannelInputRef = useRef<HTMLInputElement | null>(null);
   const [channels, setChannels] = useState(null);
   const { toUserId, channelId } = useParams();
 
@@ -201,9 +197,11 @@ function Chat() {
         </div>
         <div className=" min-w-min basis-60	 overflow-y-auto overflow-x-hidden  border-r  ">
           <div className="p-2">
-            <button className=" rounded border border-slate-50 bg-white px-2 py-1 text-xs  text-slate-500  shadow transition-colors hover:bg-slate-400 hover:text-white	hover:shadow-none">
-              <span>创建频道</span>
-            </button>
+            <CreateChannel
+              onSubmit={(name) => {
+                socketRef.current.emit("createChannel", name);
+              }}
+            />
           </div>
 
           <Collapsible.Root defaultOpen className="mb-2">
@@ -267,12 +265,68 @@ function Chat() {
   );
 }
 
+interface CreateChannelProps {
+  onSubmit: (value: string) => void;
+}
+function CreateChannel({ onSubmit }: CreateChannelProps) {
+  const createChannelInputRef = useRef<HTMLInputElement | null>(null);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Dialog.Root open={open} onOpenChange={(b) => setOpen(b)}>
+      <Dialog.Trigger>
+        <button
+          onClick={() => setOpen(true)}
+          className="rounded border border-slate-50 bg-white px-2 py-1 text-xs  text-slate-500  shadow transition-colors hover:bg-slate-400 hover:text-white	hover:shadow-none"
+        >
+          <span>创建频道</span>
+        </button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-slate-100/50">
+          <Dialog.Content className="min-w-300 relative flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
+            <Dialog.Title className="text-sm font-medium">
+              创建频道
+            </Dialog.Title>
+
+            <div className="flex items-center gap-x-3">
+              <label className="text-xs text-slate-500" htmlFor="name">
+                频道名
+              </label>
+              <input
+                className="grow border p-2 text-xs"
+                ref={createChannelInputRef}
+              />
+            </div>
+            <button
+              onClick={() => {
+                const value = createChannelInputRef.current.value;
+                if (!value) {
+                  return;
+                }
+                onSubmit(value);
+                setOpen(false);
+              }}
+              className="rounded bg-blue-400 py-2 text-sm text-white transition-colors hover:bg-blue-500"
+            >
+              创建
+            </button>
+            <Dialog.Close className="absolute right-0 top-0 block">
+              <div className="mr-4 mt-4 p-2 hover:bg-slate-200">
+                <IconClose className="h-4 w-4" />
+              </div>
+            </Dialog.Close>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
 interface ChannelProps {
   channel: any;
   channelId: string;
   onSubmit: (channelId: string) => void;
 }
-
 function Channel({ channel, channelId, onSubmit }: ChannelProps) {
   const isActive = channel.id === channelId;
   const deleteChannelInputRef = useRef<HTMLInputElement | null>(null);
@@ -285,55 +339,56 @@ function Channel({ channel, channelId, onSubmit }: ChannelProps) {
         >
           # {channel.name}
         </Link>
-        <div className=" flex items-center px-3 text-slate-300 hover:bg-rose-400 hover:text-white">
-          <Dialog.Root>
-            <Dialog.Trigger>
+
+        <Dialog.Root>
+          <Dialog.Trigger asChild>
+            <div className="flex items-center px-3 text-slate-300 transition-colors hover:bg-rose-400 hover:text-white">
               <IconClose className="h-4 w-4" />
-            </Dialog.Trigger>
-            <Dialog.Portal>
-              <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-slate-100/50">
-                <Dialog.Content className="min-w-300 relative flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
-                  <Dialog.Title className="text-lg font-medium">
-                    删除频道
-                  </Dialog.Title>
-                  <Dialog.Description className="text-sm text-slate-300">
-                    输入频道名
-                    <span className="px-1 text-slate-600">{channel.name} </span>
-                    确认删除
-                  </Dialog.Description>
-                  <div className="flex items-center gap-x-3">
-                    <label className="text-slate-500" htmlFor="name">
-                      频道名
-                    </label>
-                    <input
-                      className="grow border p-1"
-                      ref={deleteChannelInputRef}
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      console.log(
-                        deleteChannelInputRef.current.value,
-                        channel.name
-                      );
-                      if (
-                        deleteChannelInputRef.current.value === channel.name
-                      ) {
-                        onSubmit(channel.id);
-                      }
-                    }}
-                    className="rounded bg-rose-400 py-2 text-white transition-colors hover:bg-rose-500"
-                  >
-                    确认删除
-                  </button>
-                  <Dialog.Close className="absolute right-0 top-0 p-6">
+            </div>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-slate-100/50">
+              <Dialog.Content className="min-w-300 relative flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
+                <Dialog.Title className="text-sm font-medium">
+                  删除频道
+                </Dialog.Title>
+                <Dialog.Description className="text-xs text-slate-400">
+                  输入频道名
+                  <span className="px-1 text-slate-600">{channel.name} </span>
+                  确认删除
+                </Dialog.Description>
+                <div className="flex items-center gap-x-3">
+                  <label className="text-xs text-slate-500" htmlFor="name">
+                    频道名
+                  </label>
+                  <input
+                    className="grow border p-2 text-xs"
+                    ref={deleteChannelInputRef}
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    console.log(
+                      deleteChannelInputRef.current.value,
+                      channel.name
+                    );
+                    if (deleteChannelInputRef.current.value === channel.name) {
+                      onSubmit(channel.id);
+                    }
+                  }}
+                  className="rounded bg-rose-400 py-2 text-sm text-white transition-colors hover:bg-rose-500"
+                >
+                  确认删除
+                </button>
+                <Dialog.Close className="absolute right-0 top-0 block">
+                  <div className="mr-4 mt-4 p-2 hover:bg-slate-200">
                     <IconClose className="h-4 w-4" />
-                  </Dialog.Close>
-                </Dialog.Content>
-              </Dialog.Overlay>
-            </Dialog.Portal>
-          </Dialog.Root>
-        </div>
+                  </div>
+                </Dialog.Close>
+              </Dialog.Content>
+            </Dialog.Overlay>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
     </div>
   );

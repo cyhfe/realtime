@@ -10,6 +10,6 @@
     all: unset;
   }
   .min-w-300 {
-    min-width: 400px;
+    min-width: 300px;
   }
 }
