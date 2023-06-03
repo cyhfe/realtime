@@ -20,6 +20,8 @@ import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { IconSend } from "../../components/icon";
+import { Toast, ToastHandler } from "../../components/Toast";
+
 function noop() {}
 
 function ChatIndex() {
@@ -161,6 +163,7 @@ function ChatPrivate() {
   const [toUser, setToUser] = useState(null);
   const { user } = useAuth();
   const messageBoxRef = useRef<HTMLDivElement>(null);
+  const errorToastRef = useRef<ToastHandler>(null);
 
   function onSendMessage(content: string) {
     socketRef.current?.emit("chat/privateMessage", {
@@ -246,8 +249,24 @@ function ChatPrivate() {
         </MessageBox>
         <SendMessage onSubmit={onSendMessage} />
       </MessageBody>
+      <button
+        onClick={() => {
+          errorToastRef.current.toast({
+            title: "服务端错误",
+            content: "频道名已被使用",
+          });
+        }}
+      >
+        toast
+      </button>
+
+      <Toast ref={errorToastRef} />
     </MessageContainer>
   );
+}
+
+function Action() {
+  return <button>close</button>;
 }
 
 interface MessageBoxProps {

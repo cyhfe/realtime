@@ -283,8 +283,8 @@ function CreateChannel({ onSubmit }: CreateChannelProps) {
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-slate-100/50">
-          <Dialog.Content className="min-w-300 relative flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
+        <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-start justify-center bg-slate-100/50">
+          <Dialog.Content className="min-w-300 relative top-40 flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
             <Dialog.Title className="text-sm font-medium">
               创建频道
             </Dialog.Title>
@@ -305,7 +305,7 @@ function CreateChannel({ onSubmit }: CreateChannelProps) {
                   return;
                 }
                 onSubmit(value);
-                setOpen(false);
+                setOpen(false); 
               }}
               className="rounded bg-blue-400 py-2 text-sm text-white transition-colors hover:bg-blue-500"
             >
@@ -314,7 +314,7 @@ function CreateChannel({ onSubmit }: CreateChannelProps) {
             <Dialog.Close className="absolute right-0 top-0 block">
               <div className="mr-4 mt-4 p-2 hover:bg-slate-200">
                 <IconClose className="h-4 w-4" />
-              </div>
+              </div>  
             </Dialog.Close>
           </Dialog.Content>
         </Dialog.Overlay>
@@ -347,8 +347,8 @@ function Channel({ channel, channelId, onSubmit }: ChannelProps) {
             </div>
           </Dialog.Trigger>
           <Dialog.Portal>
-            <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-slate-100/50">
-              <Dialog.Content className="min-w-300 relative flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
+            <Dialog.Overlay className="fixed bottom-0 left-0 right-0 top-0 flex items-start justify-center bg-slate-100/50">
+              <Dialog.Content className="min-w-300 relative top-40 flex flex-col gap-y-4 rounded bg-white p-6 text-base text-slate-600 shadow">
                 <Dialog.Title className="text-sm font-medium">
                   删除频道
                 </Dialog.Title>
