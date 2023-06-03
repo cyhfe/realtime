@@ -18,6 +18,7 @@ import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { IconSend } from "../../components/icon";
+import { ChannelMessage, IChannel, PrivateMessage, User } from "../../types";
 
 function noop() {}
 
@@ -31,9 +32,11 @@ function ChatIndex() {
 
 function ChatChannel() {
   const { channelId } = useParams();
-  const [channelMessages, setChannelMessages] = useState([]);
-  const [channel, setChannel] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [channelMessages, setChannelMessages] = useState<
+    ChannelMessage[] | null
+  >(null);
+  const [channel, setChannel] = useState<IChannel | null>(null);
+  const [users, setUsers] = useState<User[] | null>(null);
   const { socketRef, isConnected } = useChat();
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
   const { user } = useAuth();
@@ -58,17 +61,16 @@ function ChatChannel() {
     const socket = socketRef.current;
     if (!socket) return noop;
 
-    function onGetChannel(channel: any) {
+    function onGetChannel(channel: IChannel) {
       setChannel(channel);
     }
-    function onUpdateChannelMessages(messages: any) {
+    function onUpdateChannelMessages(messages: ChannelMessage[]) {
       setChannelMessages(messages);
     }
-    function onUpdateChannelMessage(message: any) {
-      setChannelMessages((prev) => [...prev, message]);
+    function onUpdateChannelMessage(message: ChannelMessage) {
+      setChannelMessages((prev) => [...(prev ?? []), message]);
     }
-    function onUpdateChannelUsers(users: any) {
-      console.log(users);
+    function onUpdateChannelUsers(users: User[]) {
       setUsers(users);
     }
 
@@ -100,7 +102,9 @@ function ChatChannel() {
     return <Navigate to="/chat"></Navigate>;
   }
 
-  if (!channel) return null;
+  if (!channel) {
+    return null;
+  }
 
   return (
     <MessageContainer>
@@ -109,44 +113,46 @@ function ChatChannel() {
           <div className="flex items-center gap-x-3 text-sm">
             {channel.name}
             <div className="flex -space-x-2 overflow-hidden">
-              {users.map((user: any) => {
-                return (
-                  <img
-                    key={user.id}
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                    src={user.avatar}
-                    alt="avatar"
-                  />
-                );
-              })}
+              {users &&
+                users.map((user) => {
+                  return (
+                    <img
+                      key={user.id}
+                      className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
+                      src={user.avatar}
+                      alt="avatar"
+                    />
+                  );
+                })}
             </div>
           </div>
           <div>
             <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-              频道当前人数 {users.length}
+              频道当前人数 {users?.length ?? 0}
             </span>
           </div>
         </div>
       </MessageHeader>
       <MessageBody>
         <MessageBox ref={messageBoxRef}>
-          {channelMessages.map((message: any) => {
-            const owner = message.fromUserId === user.id;
-            const avatar = message.from.avatar;
-            const username = message.from.username;
-            const { content, createdAt } = message;
+          {channelMessages &&
+            channelMessages.map((message) => {
+              const owner = message.fromUserId === user?.id;
+              const avatar = message.from.avatar;
+              const username = message.from.username;
+              const { content, createdAt } = message;
 
-            return (
-              <Message
-                key={message.id}
-                avatar={avatar}
-                owner={owner}
-                content={content}
-                createdAt={createdAt}
-                username={username}
-              />
-            );
-          })}
+              return (
+                <Message
+                  key={message.id}
+                  avatar={avatar}
+                  owner={owner}
+                  content={content}
+                  createdAt={createdAt}
+                  username={username}
+                />
+              );
+            })}
         </MessageBox>
         <SendMessage onSubmit={onSendMessage} />
       </MessageBody>
@@ -157,8 +163,10 @@ function ChatChannel() {
 function ChatPrivate() {
   const { toUserId } = useParams();
   const { socketRef, isConnected } = useChat();
-  const [privateMessages, setPrivateMessages] = useState([]);
-  const [toUser, setToUser] = useState(null);
+  const [privateMessages, setPrivateMessages] = useState<
+    PrivateMessage[] | null
+  >(null);
+  const [toUser, setToUser] = useState<User | null>(null);
   const { user } = useAuth();
   const messageBoxRef = useRef<HTMLDivElement>(null);
 
@@ -188,12 +196,12 @@ function ChatPrivate() {
     const socket = socketRef.current;
     if (!socket) return noop;
     function onNewPrivateMessage(message: any) {
-      setPrivateMessages((messages) => [...messages, message]);
+      setPrivateMessages((messages) => [...(messages ?? []), message]);
     }
     function onUpdatePrivateMessages(messages: any) {
       setPrivateMessages(messages);
     }
-    function onUpdateToUser(toUser: any) {
+    function onUpdateToUser(toUser: User) {
       setToUser(toUser);
     }
     socket.emit("updatePrivateMessages", toUserId);
@@ -227,23 +235,24 @@ function ChatPrivate() {
       </MessageHeader>
       <MessageBody>
         <MessageBox ref={messageBoxRef}>
-          {privateMessages.map((message) => {
-            const owner = message.fromUserId === user.id;
-            const avatar = owner ? message.from.avatar : message.to.avatar;
-            const username = message.from.username;
-            const { content, createdAt } = message;
+          {privateMessages &&
+            privateMessages.map((message) => {
+              const owner = message.fromUserId === user.id;
+              const avatar = owner ? message.from.avatar : message.to.avatar;
+              const username = message.from.username;
+              const { content, createdAt } = message;
 
-            return (
-              <Message
-                key={message.id}
-                avatar={avatar}
-                owner={owner}
-                content={content}
-                createdAt={createdAt}
-                username={username}
-              />
-            );
-          })}
+              return (
+                <Message
+                  key={message.id}
+                  avatar={avatar}
+                  owner={owner}
+                  content={content}
+                  createdAt={createdAt}
+                  username={username}
+                />
+              );
+            })}
         </MessageBox>
         <SendMessage onSubmit={onSendMessage} />
       </MessageBody>

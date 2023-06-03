@@ -10,3 +10,23 @@ export interface User {
   id: string;
   avatar: string;
 }
+
+export interface ChannelMessage {
+  content: string;
+  createdAt: string;
+  from: User;
+  fromUserId: string;
+  id: string;
+  read: boolean;
+  toChannelId: string;
+}
+
+export interface PrivateMessage {
+  content: string;
+  createdAt: string;
+  from: User;
+  fromUserId: string;
+  id: string;
+  to: User;
+  toUserId: string;
+}
