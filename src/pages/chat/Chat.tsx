@@ -23,7 +23,11 @@ import { IconSend } from "../../components/icon";
 function noop() {}
 
 function ChatIndex() {
-  return <div>请选择一个用户或者频道开始聊天吧!</div>;
+  return (
+    <div className="flex h-full items-center justify-center">
+      请选择一个用户或者频道开始聊天吧!
+    </div>
+  );
 }
 
 function ChatChannel() {
@@ -108,6 +112,7 @@ function ChatChannel() {
               {users.map((user: any) => {
                 return (
                   <img
+                    key={user.id}
                     className="inline-block h-8 w-8 rounded-full ring-2 ring-white"
                     src={user.avatar}
                     alt="avatar"

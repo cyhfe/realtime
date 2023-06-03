@@ -32,6 +32,7 @@ function Canvas() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [current, setCurrent] = useState<Current | null>(null);
   const [strokeColor, setStrokeColor] = useState(COLOR.Slate);
+  const [users, setUsers] = useState([]);
   // reflow
   useLayoutEffect(() => {
     function onResize() {
@@ -131,7 +132,7 @@ function Canvas() {
     socket.on("clear", clear);
     socket.on("changeStrokeColor", setStrokeColor);
     socket.on("updateUsers", (users: any) => {
-      console.log(users);
+      setUsers(users);
     });
     socket.connect();
 
@@ -149,6 +150,20 @@ function Canvas() {
 
   return (
     <div className="relative h-full w-full" ref={containerRef}>
+      <div className="absolute left-4 top-4 flex h-full flex-col -space-y-2 overflow-y-scroll">
+        {users.map((user: any) => {
+          return (
+            <>
+              <img
+                className="inline-block h-11 w-11 rounded-full ring-2 ring-white"
+                src={user.avatar}
+                alt="avatar"
+              />
+            </>
+          );
+        })}
+      </div>
+
       <div className="absolute  right-1/2 top-5 flex translate-x-1/2 items-center gap-x-1 divide-x  border border-slate-50 bg-slate-50 p-2 text-slate-400 shadow-md">
         <div className="flex items-center pr-1">
           <button className=" block  p-1">
