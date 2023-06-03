@@ -1,11 +1,4 @@
-import {
-  Link,
-  Outlet,
-  useLocation,
-  useMatch,
-  useMatches,
-  useParams,
-} from "react-router-dom";
+import { Link, Outlet, useMatches } from "react-router-dom";
 import { useAuth } from "./context/Auth";
 import { IconCanvas, IconChat, IconLogout, IconMusic } from "./components/icon";
 import { Online } from "./components/Online";
@@ -19,6 +12,9 @@ export default function Layout() {
   const isChat = pathname === "/chat";
   const isCanvas = pathname === "/canvas";
   const isMusic = pathname === "/music";
+
+  if (!user) return null;
+
   return (
     <Fullscreen>
       <div className="flex h-full flex-col">

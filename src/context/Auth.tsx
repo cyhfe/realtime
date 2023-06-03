@@ -7,7 +7,7 @@ import {
 } from "react";
 import { getToken, removeToken, requestAuth } from "../utils";
 
-const AutuContext = createContext(null);
+const AutuContext = createContext<AuthContextValue | null>(null);
 interface User {
   username: string;
   id: string;
@@ -16,6 +16,14 @@ interface User {
 
 interface AuthProviderProps {
   children: React.ReactNode;
+}
+
+interface AuthContextValue {
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  logout: () => void;
+  online: boolean;
+  setOnline: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -53,7 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
     getUser();
-  }, []);
+  }, [token]);
 
   const ctx = useMemo(() => {
     return {
@@ -73,5 +81,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 }
 
 export function useAuth() {
-  return useContext(AutuContext);
+  const ctx = useContext(AutuContext);
+  if (!ctx) throw Error("useAuth should used in AuthProvider");
+  return ctx;
 }

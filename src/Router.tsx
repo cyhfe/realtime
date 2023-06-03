@@ -7,7 +7,6 @@ import Layout from "./Layout";
 
 import Login from "./pages/login";
 
-import { Outlet } from "react-router-dom";
 import { useAuth } from "./context/Auth";
 import Chat from "./pages/chat";
 import { ChatIndex, ChatPrivate, ChatChannel } from "./pages/chat/Chat";

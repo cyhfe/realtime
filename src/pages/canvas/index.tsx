@@ -36,6 +36,7 @@ function Canvas() {
   // reflow
   useLayoutEffect(() => {
     function onResize() {
+      if (!containerRef.current || !canvasRef.current) return;
       const { width, height } = containerRef.current.getBoundingClientRect();
       canvasRef.current.width = width;
       canvasRef.current.height = height;
