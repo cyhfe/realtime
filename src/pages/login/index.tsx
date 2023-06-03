@@ -86,7 +86,7 @@ function Signup() {
             <div className="flex justify-around">
               {avatars.map((item) => {
                 return (
-                  <div className="">
+                  <div key={item}>
                     <img
                       onClick={() => setAvatar(item)}
                       className="block h-11 w-11 flex-none rounded-full bg-gray-50  

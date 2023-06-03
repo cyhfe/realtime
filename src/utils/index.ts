@@ -35,9 +35,10 @@ export function requestAuth(
     ...customConfig
   }: RequestOption = {}
 ) {
-  const config = {
+  const config: RequestInit = {
     method: method ?? "GET",
     body: data ? JSON.stringify(data) : undefined,
+    // @ts-ignore
     headers: {
       Authorization: token ? `Bearer ${token}` : undefined,
       "Content-Type": data ? "application/json" : undefined,
@@ -58,9 +59,10 @@ export function request(
     ...customConfig
   }: RequestOption = {}
 ) {
-  const config = {
+  const config: RequestInit = {
     method: method ?? "GET",
     body: data ? JSON.stringify(data) : undefined,
+    // @ts-ignore
     headers: {
       Authorization: token ? `Bearer ${token}` : undefined,
       "Content-Type": data ? "application/json" : undefined,

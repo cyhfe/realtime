@@ -124,7 +124,7 @@ function Canvas() {
     socketRef.current = io(AUTH_BASE_URL + "canvas", {
       autoConnect: false,
       auth: {
-        user: JSON.stringify(user),
+        user,
       },
     });
     const socket = socketRef.current;
@@ -160,17 +160,16 @@ function Canvas() {
 
   return (
     <div className="relative h-full w-full" ref={containerRef}>
-      <div className="absolute left-4 top-4 flex h-full flex-col -space-y-2 overflow-hidden">
+      <div className="absolute left-4 top-4 flex flex-col -space-y-2 overflow-hidden">
         {users &&
-          users.map((user: any) => {
+          users.map((user) => {
             return (
-              <>
-                <img
-                  className="inline-block h-11 w-11 rounded-full ring-2 ring-white"
-                  src={user.avatar}
-                  alt="avatar"
-                />
-              </>
+              <img
+                key={user.id}
+                className="inline-block h-11 w-11 rounded-full ring-2 ring-white"
+                src={user.avatar}
+                alt="avatar"
+              />
             );
           })}
       </div>

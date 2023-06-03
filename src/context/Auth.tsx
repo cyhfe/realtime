@@ -82,6 +82,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 export function useAuth() {
   const ctx = useContext(AutuContext);
-  if (!ctx) throw Error("useAuth should used in AuthProvider");
+  if (!ctx) throw Error("useAuth should be used within AuthProvider");
   return ctx;
 }

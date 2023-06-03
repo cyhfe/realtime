@@ -9,13 +9,7 @@ import {
 import { useAuth } from "../../context/Auth";
 import { Socket, io } from "socket.io-client";
 import { AUTH_BASE_URL } from "../../utils/const";
-import {
-  Link,
-  Outlet,
-  useNavigate,
-  useParams,
-  Navigate,
-} from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { Online } from "../../components/Online";
 import clsx from "clsx";
@@ -76,7 +70,8 @@ function Chat() {
     function onConnect() {
       setIsConnected(true);
       setOnline(true);
-      socket?.emit("chat/connect", user);
+      socket?.emit("chat/updateUsers");
+      socket?.emit("chat/updateChannels");
     }
 
     function onDisconnect() {
@@ -96,7 +91,6 @@ function Chat() {
     }
 
     function onUpdateUsers(users: User[]) {
-      console.log(users);
       setUsers(users);
     }
 
@@ -130,18 +124,11 @@ function Chat() {
     };
   }, [navagate, setOnline, user]);
 
-  useEffect(() => {
-    socketRef.current?.emit("chat/updateUsers");
-    socketRef.current?.emit("chat/updateChannels");
-  }, []);
-
   const title = clsx("p-2 text-xs text-slate-600");
+
   if (!user) {
-    return <Navigate to="/login" />;
+    return null;
   }
-  // if (!channelId) {
-  //   return <Navigate to="/chat" />;
-  // }
 
   const ownChannel = channels?.filter((c) => c.userId === user.id);
   const otherChanner = channels?.filter((c) => c.userId !== user.id);
