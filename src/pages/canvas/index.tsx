@@ -128,6 +128,15 @@ function Canvas() {
       },
     });
     const socket = socketRef.current;
+    socket.connect();
+    return () => {
+      socket.disconnect();
+    };
+  }, [user]);
+
+  useEffect(() => {
+    const socket = socketRef.current;
+    if (!socket) return;
     function onConnect() {
       setOnline(true);
     }
@@ -144,7 +153,6 @@ function Canvas() {
     socket.on("updateUsers", (users: User[]) => {
       setUsers(users);
     });
-    socket.connect();
 
     return () => {
       socket.off("connect", onConnect);
@@ -152,8 +160,6 @@ function Canvas() {
       socket.off("drawing", draw);
       socket.off("clear", clear);
       socket.off("changeStrokeColor", setStrokeColor);
-
-      socket.disconnect();
       setOnline(false);
     };
   }, [draw, setOnline, user]);
