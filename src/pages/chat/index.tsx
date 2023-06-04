@@ -102,6 +102,7 @@ function Chat() {
     }
 
     function onDeleteChannel() {
+      console.log("delete");
       navagate("/chat");
     }
 
@@ -110,7 +111,7 @@ function Chat() {
     socket.on("chat/updateOnlineList", onUpdateOnlineList);
     socket.on("chat/updateChannels", onUpdateChannels);
     socket.on("chat/updateUsers", onUpdateUsers);
-    socket.on("chat/deleteChannel", onDeleteChannel);
+    socket.on("deleteChannel", onDeleteChannel);
     socket.on("error", onError);
 
     return () => {
@@ -186,9 +187,15 @@ function Chat() {
               <Collapsible.Content className="divide-y divide-slate-100">
                 {users &&
                   users
-                    .filter(
-                      (u) => !onlineList?.find((o) => o.username === u.username)
-                    )
+                    .filter((u) => {
+                      const onlineUsers = onlineList?.map(
+                        (online) => online.username
+                      );
+                      return (
+                        !onlineUsers?.includes(u.username) &&
+                        u.username !== user.username
+                      );
+                    })
                     .map((user) => {
                       const isActive = toUserId === user.id;
 
@@ -242,13 +249,11 @@ function Chat() {
                 </div>
               )}
               {ownChannel &&
-                channelId &&
                 ownChannel.map((c: any) => {
                   return (
                     <Channel
                       key={c.id}
                       channel={c}
-                      channelId={channelId}
                       onSubmit={(id) => {
                         socketRef.current?.emit("deleteChannel", id);
                       }}
@@ -356,12 +361,12 @@ function CreateChannel({ onSubmit }: CreateChannelProps) {
   );
 }
 interface ChannelProps {
-  channel: any;
-  channelId: string;
+  channel: IChannel;
   onSubmit: (channelId: string) => void;
 }
 
-function Channel({ channel, channelId, onSubmit }: ChannelProps) {
+function Channel({ channel, onSubmit }: ChannelProps) {
+  const { channelId } = useParams();
   const isActive = channel.id === channelId;
   const deleteChannelInputRef = useRef<HTMLInputElement | null>(null);
   return (
