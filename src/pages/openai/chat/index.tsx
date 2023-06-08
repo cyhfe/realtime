@@ -1,41 +1,48 @@
-import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, Outlet } from "react-router-dom";
 import { Conversation } from "../../../types";
-import axios from "axios";
-import { BASE_URL } from "../../../utils/const";
-import { useAuth } from "../../../context/Auth";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "../../../components/Dialog";
+import Input from "../../../components/Input";
 function Chat() {
-  const { user } = useAuth();
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
-    async function getConvarsation() {
-      const token = getToken() ?? undefined;
-      const res = await requestApi({
-        method: "get",
-        endPoint: "conversation",
-        token,
-      });
-      if (res.statusText === "OK") {
-        const { conversations } = res.data;
-        setConversation(conversations);
-      }
+  async function getConvarsation() {
+    const token = getToken() ?? undefined;
+    const res = await requestApi({
+      method: "get",
+      endPoint: "conversation",
+      token,
+    });
+    if (res.statusText === "OK") {
+      const { conversation } = res.data;
+      console.log(conversation);
+      setConversation(conversation);
     }
+  }
+
+  useEffect(() => {
     getConvarsation();
-  }, [user]);
+  }, []);
 
   return (
     <div className="flex">
       <div>
-        <button>创建对话</button>
+        <CreateConversation onSuccess={() => getConvarsation()} />
         <div>对话列表</div>
-        <div>
+        <div className="flex flex-col">
           {conversation &&
             conversation.map((item) => {
-              return <div key={item.id}>{item.name}</div>;
+              return (
+                <Link key={item.id} to={`/openai/chat/${item.id}`}>
+                  <div> {item.name}</div>
+                </Link>
+              );
             })}
         </div>
       </div>
@@ -43,6 +50,53 @@ function Chat() {
         <Outlet />
       </div>
     </div>
+  );
+}
+
+interface CreateConversationProps {
+  onSuccess: () => void;
+}
+
+function CreateConversation({ onSuccess }: CreateConversationProps) {
+  const [createDialogIsOpen, setCreateDialogIsOpen] = useState(false);
+  const createInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function onCreateConversation() {
+    const value = createInputRef.current?.value;
+    if (!value) return;
+    const token = getToken() ?? undefined;
+    setLoading(true);
+    const res = await requestApi({
+      method: "post",
+      endPoint: "conversation",
+      token,
+      data: {
+        name: value,
+      },
+    });
+    setLoading(false);
+    if (res.statusText === "OK") {
+      onSuccess();
+      setCreateDialogIsOpen(false);
+    }
+  }
+  return (
+    <Dialog open={createDialogIsOpen} onChange={setCreateDialogIsOpen}>
+      <DialogTrigger>
+        <button onClick={() => setCreateDialogIsOpen(true)}>创建对话</button>
+      </DialogTrigger>
+      <DialogContent title="创建对话">
+        <Input name="name" label="标题" type="text" ref={createInputRef} />
+        <button
+          onClick={onCreateConversation}
+          className="block w-full rounded  bg-sky-500 py-2 text-sm font-semibold text-white shadow hover:bg-sky-600"
+          disabled={loading}
+        >
+          提交
+        </button>
+      </DialogContent>
+    </Dialog>
   );
 }
 
