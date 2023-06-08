@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import { Conversation } from "../../../types";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
@@ -9,9 +9,10 @@ import {
   DialogTrigger,
 } from "../../../components/Dialog";
 import Input from "../../../components/Input";
+import clsx from "clsx";
 function Chat() {
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
-
+  const { conversationId } = useParams();
   async function getConvarsation() {
     const token = getToken() ?? undefined;
     const res = await requestApi({
@@ -30,22 +31,36 @@ function Chat() {
   }, []);
 
   return (
-    <div className="flex">
-      <div>
+    <div className="flex h-full">
+      <div className="hidden basis-[180px] overflow-y-auto overflow-x-hidden border-r  py-1 md:block">
         <CreateConversation onSuccess={() => getConvarsation()} />
-        <div>对话列表</div>
-        <div className="flex flex-col">
+        <div className="flex flex-col divide-y divide-slate-100 border-y">
           {conversation &&
             conversation.map((item) => {
+              const isActive = conversationId === item.id;
               return (
-                <Link key={item.id} to={`/openai/chat/${item.id}`}>
-                  <div> {item.name}</div>
-                </Link>
+                <div
+                  key={item.id}
+                  className={!isActive ? "bg-white" : "bg-slate-200"}
+                >
+                  <div
+                    className={clsx("flex", !isActive && "hover:bg-slate-50")}
+                  >
+                    <Link
+                      to={`/openai/chat/${item.id}`}
+                      className={clsx(
+                        "flex grow items-center px-4 py-2 text-sm text-slate-600"
+                      )}
+                    >
+                      {item.name}
+                    </Link>
+                  </div>
+                </div>
               );
             })}
         </div>
       </div>
-      <div>
+      <div className="grow overflow-hidden ">
         <Outlet />
       </div>
     </div>
@@ -83,7 +98,14 @@ function CreateConversation({ onSuccess }: CreateConversationProps) {
   return (
     <Dialog open={createDialogIsOpen} onChange={setCreateDialogIsOpen}>
       <DialogTrigger>
-        <button onClick={() => setCreateDialogIsOpen(true)}>创建对话</button>
+        <div className="flex items-center justify-center px-4">
+          <button
+            onClick={() => setCreateDialogIsOpen(true)}
+            className="my-3 block w-full rounded-full border bg-white py-2 text-xs  text-slate-600  shadow-sm transition hover:bg-slate-500 hover:text-white"
+          >
+            创建对话
+          </button>
+        </div>
       </DialogTrigger>
       <DialogContent title="创建对话">
         <Input name="name" label="标题" type="text" ref={createInputRef} />

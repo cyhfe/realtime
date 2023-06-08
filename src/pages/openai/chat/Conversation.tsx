@@ -8,26 +8,45 @@ import remarkGfm from "remark-gfm";
 import clsx from "clsx";
 import { useAuth } from "../../../context/Auth";
 import { IconSend } from "../../../components/icon";
+import Loading from "../../../components/Loading";
+import { Toast, ToastHandler } from "../../../components/Toast";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
+  const messageBoxRef = useRef<HTMLDivElement | null>(null);
+  const [messageLoading, setMessageLoading] = useState(false);
+  const errorToastRef = useRef<ToastHandler>(null);
   const { user } = useAuth();
   const { conversationId } = useParams();
   const getMessages = useCallback(
     async function getMessages() {
       const token = getToken() ?? undefined;
-      const res = await requestApi({
-        method: "get",
-        endPoint: "message",
-        token,
-        params: {
-          conversationId,
-        },
-      });
-      if (res.statusText === "OK") {
-        const { messages } = res.data;
-        console.log(messages);
-        setMessages(messages);
+      try {
+        const res = await requestApi({
+          method: "get",
+          endPoint: "message",
+          token,
+          params: {
+            conversationId,
+          },
+        });
+        if (res.statusText === "OK") {
+          console.log(res.data);
+          const { messages } = res.data;
+          setMessages(messages);
+        } else {
+          console.log(res.data);
+          errorToastRef.current?.toast({
+            title: "服务端错误",
+            content: "error",
+          });
+        }
+      } catch (error: any) {
+        console.log(123);
+        errorToastRef.current?.toast({
+          title: "服务端错误",
+          content: "error",
+        });
       }
     },
     [conversationId]
@@ -37,49 +56,80 @@ function Conversation() {
     getMessages();
   }, [getMessages]);
 
-  return (
-    <div>
-      {messages &&
-        user &&
-        messages.map(({ role, createdAt, content }) => {
-          const isOwnner = role === "user";
-          function getUsername() {
-            if (role === "assistant") return "ChatGPT";
-            if (role === "user") return user!.username;
-            if (role === "system") return "系统";
-            return "";
-          }
-          const username = getUsername();
-          return (
-            <Message
-              isOwnner={isOwnner}
-              createdAt={createdAt}
-              username={username}
-              content={content}
-              avatar={user.avatar}
-            />
-          );
-        })}
+  useEffect(() => {
+    if (!messages || !messages.length) return;
+    function scrollToTop() {
+      messageBoxRef.current?.scrollTo(0, messageBoxRef.current.scrollHeight);
+    }
+    scrollToTop();
+  }, [messages, messageLoading]);
 
-      <SendMessage
-        onSubmit={async (content) => {
-          const token = getToken() ?? undefined;
-          const res = await requestApi({
-            method: "post",
-            endPoint: "message",
-            token,
-            data: {
-              content,
-              conversationId,
-            },
-          });
-          console.log(res);
-          if (res.statusText === "OK") {
-            const messages = res.data.messages;
-            setMessages(messages);
-          }
-        }}
-      />
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <div className="grow overflow-hidden">
+        <div className="h-full overflow-y-auto px-7 py-2" ref={messageBoxRef}>
+          {messages &&
+            user &&
+            messages.map(({ role, createdAt, content }) => {
+              const isOwnner = role === "user";
+              function getUsername() {
+                if (role === "assistant") return "ChatGPT";
+                if (role === "user") return user!.username;
+                if (role === "system") return "系统";
+                return "";
+              }
+              const username = getUsername();
+              return (
+                <Message
+                  isOwnner={isOwnner}
+                  createdAt={createdAt}
+                  username={username}
+                  content={content}
+                  avatar={user.avatar}
+                />
+              );
+            })}
+          {messageLoading && <Loading />}
+        </div>
+      </div>
+
+      <div>
+        <SendMessage
+          disabled={messageLoading}
+          onSubmit={async (content) => {
+            if (!content) return;
+            const token = getToken() ?? undefined;
+            setMessageLoading(true);
+            try {
+              const res = await requestApi({
+                method: "post",
+                endPoint: "message",
+                token,
+                data: {
+                  content,
+                  conversationId,
+                },
+              });
+              if (res.statusText === "OK") {
+                const messages = res.data.messages;
+                setMessages(messages);
+              } else {
+                errorToastRef.current?.toast({
+                  title: "服务端错误",
+                  content: "error",
+                });
+              }
+            } catch (error: any) {
+              errorToastRef.current?.toast({
+                title: "服务端错误",
+                content: "error",
+              });
+            }
+            setMessageLoading(false);
+          }}
+        />
+      </div>
+      <Toast ref={errorToastRef} />
     </div>
   );
 }
@@ -152,9 +202,10 @@ function Message({
 
 interface SendMessageProps {
   onSubmit: (content: string) => void;
+  disabled?: boolean;
 }
 
-export function SendMessage({ onSubmit }: SendMessageProps) {
+export function SendMessage({ onSubmit, disabled = false }: SendMessageProps) {
   const messageRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -171,6 +222,7 @@ export function SendMessage({ onSubmit }: SendMessageProps) {
     <div className="shrink-0 grow-0 basis-auto bg-white">
       <div className="p-6">
         <textarea
+          disabled={disabled}
           ref={messageRef}
           id="about"
           name="about"
@@ -185,6 +237,7 @@ export function SendMessage({ onSubmit }: SendMessageProps) {
           }}
         ></textarea>
         <button
+          disabled={disabled}
           className=" block rounded border border-slate-50 px-6 py-1 text-slate-400 shadow transition-colors hover:bg-slate-300 hover:text-white	hover:shadow-none"
           onClick={handleSubmit}
         >
