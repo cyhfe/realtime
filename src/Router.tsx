@@ -16,6 +16,7 @@ import { Music } from "./pages/music";
 import OpenAi from "./pages/openai";
 import AiChat from "./pages/openai/chat";
 import Images from "./pages/openai/Images";
+import Conversation from "./pages/openai/chat/Conversation";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
               },
               {
                 path: "/openai/chat/:conversationId",
-                element: <div>conversation</div>,
+                element: <Conversation />,
               },
             ],
           },

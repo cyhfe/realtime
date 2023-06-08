@@ -21,7 +21,6 @@ function Chat() {
     });
     if (res.statusText === "OK") {
       const { conversation } = res.data;
-      console.log(conversation);
       setConversation(conversation);
     }
   }
