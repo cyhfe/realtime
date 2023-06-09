@@ -17,6 +17,9 @@ import OpenAi from "./pages/openai";
 import AiChat from "./pages/openai/chat";
 import Images from "./pages/openai/genImages";
 import Conversation from "./pages/openai/chat/Conversation";
+import Generation from "./pages/openai/genImages/Generation";
+import Variation from "./pages/openai/genImages/Variation";
+import Edit from "./pages/openai/genImages/Edit";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -100,15 +103,15 @@ const router = createBrowserRouter([
             children: [
               {
                 path: "/openai/images/generations",
-                element: <div>图片生成</div>,
+                element: <Generation />,
               },
               {
                 path: "/openai/images/variations",
-                element: <div>图像变化</div>,
+                element: <Variation />,
               },
               {
                 path: "/openai/images/edit",
-                element: <div>图像编辑</div>,
+                element: <Edit />,
               },
             ],
           },
