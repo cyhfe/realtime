@@ -15,7 +15,7 @@ import Canvas from "./pages/canvas";
 import { Music } from "./pages/music";
 import OpenAi from "./pages/openai";
 import AiChat from "./pages/openai/chat";
-import Images from "./pages/openai/Images";
+import Images from "./pages/openai/genImages";
 import Conversation from "./pages/openai/chat/Conversation";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
@@ -97,6 +97,20 @@ const router = createBrowserRouter([
           {
             path: "/openai/images",
             element: <Images />,
+            children: [
+              {
+                path: "/openai/images/generations",
+                element: <div>图片生成</div>,
+              },
+              {
+                path: "/openai/images/variations",
+                element: <div>图像变化</div>,
+              },
+              {
+                path: "/openai/images/edit",
+                element: <div>图像编辑</div>,
+              },
+            ],
           },
         ],
       },

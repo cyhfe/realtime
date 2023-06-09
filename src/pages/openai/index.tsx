@@ -12,10 +12,10 @@ function OpenAi() {
             聊天
           </Link>
           <Link
-            to="/openai/images"
+            to="/openai/images/generations"
             className="block rounded-r-full bg-white px-4 py-1 font-semibold  text-slate-600 shadow"
           >
-            图片生成
+            图像
           </Link>
         </div>
       </div>
