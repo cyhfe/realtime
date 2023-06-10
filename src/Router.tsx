@@ -1,6 +1,5 @@
 import {
   Navigate,
-  Outlet,
   RouterProvider,
   createBrowserRouter,
 } from "react-router-dom";

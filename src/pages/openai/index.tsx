@@ -1,19 +1,33 @@
-import { Link, Outlet } from "react-router-dom";
+import clsx from "clsx";
+import { Link, Outlet, useMatches } from "react-router-dom";
 
 function OpenAi() {
+  const matches = useMatches();
+  const pathname = matches[2].pathname;
+
+  const isChat = pathname === "/openai/chat";
+  const isImages = pathname === "/openai/images";
+
+  console.log(matches);
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-center border-b bg-white">
         <div className="my-4 flex text-sm">
           <Link
             to="/openai/chat"
-            className="block rounded-l-full border-r bg-slate-600 px-4 py-1  font-semibold text-white shadow"
+            className={clsx(
+              "tansition block rounded-l-full border border-r bg-slate-50  px-4 py-1 font-semibold text-slate-600 text-slate-600 shadow-inner",
+              isChat && " bg-slate-600 text-white"
+            )}
           >
             聊天
           </Link>
           <Link
             to="/openai/images/generations"
-            className="block rounded-r-full bg-white px-4 py-1 font-semibold  text-slate-600 shadow"
+            className={clsx(
+              "tansition block rounded-r-full border border-l bg-slate-50  px-4 py-1 font-semibold text-slate-600 text-slate-600 shadow-inner",
+              isImages && " bg-slate-600 text-white"
+            )}
           >
             图像
           </Link>
