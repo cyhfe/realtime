@@ -11,6 +11,7 @@ export function requestApi({
   method,
   endPoint,
   token,
+  headers,
   ...rest
 }: RequestApiConfig) {
   return axios({
@@ -19,6 +20,7 @@ export function requestApi({
     baseURL: BASE_URL,
     headers: {
       Authorization: token ? `Bearer ${token}` : undefined,
+      ...headers,
     },
     ...rest,
   });
