@@ -32,7 +32,7 @@ function Chat() {
 
   return (
     <div className="flex h-full">
-      <div className="hidden basis-[180px] overflow-y-auto overflow-x-hidden border-r  py-1 md:block">
+      <div className="basis-[180px] overflow-y-auto overflow-x-hidden border-r  py-1 md:block">
         <CreateConversation onSuccess={() => getConvarsation()} />
         <div className="flex flex-col divide-y divide-slate-100 border-y">
           {conversation &&
