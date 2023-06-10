@@ -20,6 +20,7 @@ import Conversation from "./pages/openai/chat/Conversation";
 import Generation from "./pages/openai/genImages/Generation";
 import Variation from "./pages/openai/genImages/Variation";
 import Edit from "./pages/openai/genImages/Edit";
+import NoConversation from "./pages/openai/chat/NoConversation";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
             children: [
               {
                 index: true,
-                element: <div>请创建或选择一个对话</div>,
+                element: <NoConversation />,
               },
               {
                 path: "/openai/chat/:conversationId",

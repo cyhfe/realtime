@@ -70,7 +70,7 @@ function Conversation() {
         <div className="h-full overflow-y-auto px-7 py-2" ref={messageBoxRef}>
           {messages &&
             user &&
-            messages.map(({ role, createdAt, content }) => {
+            messages.map(({ role, createdAt, content, id }) => {
               const isOwnner = role === "user";
               function getUsername() {
                 if (role === "assistant") return "ChatGPT";
@@ -81,6 +81,7 @@ function Conversation() {
               const username = getUsername();
               return (
                 <Message
+                  key={id}
                   isOwnner={isOwnner}
                   createdAt={createdAt}
                   username={username}
