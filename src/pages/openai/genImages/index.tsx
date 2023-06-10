@@ -17,8 +17,8 @@ function GenImages() {
           <Link
             to="/openai/images/generations"
             className={clsx(
-              "tansition block rounded-l-full border-r  bg-slate-50   bg-white px-4 py-1 text-xs text-slate-600 text-slate-600 shadow",
-              isGenerations && "bg-slate-500 text-white"
+              "tansition block rounded-l-full border-r  bg-slate-50   bg-white px-4 py-1 text-xs  text-slate-600 shadow",
+              isGenerations && "bg-rose-500 text-white"
             )}
           >
             生成
@@ -26,8 +26,8 @@ function GenImages() {
           <Link
             to="/openai/images/variations"
             className={clsx(
-              "tansition block border-r bg-slate-50  bg-white px-4 py-1 text-xs text-slate-600 text-slate-600 shadow",
-              isVariations && "bg-slate-500 text-white"
+              "tansition block border-r bg-slate-50  bg-white px-4 py-1 text-xs  text-slate-600 shadow",
+              isVariations && "bg-rose-500 text-white"
             )}
           >
             变化
@@ -35,8 +35,8 @@ function GenImages() {
           <Link
             to="/openai/images/edit"
             className={clsx(
-              "tansition block rounded-r-full  border-r bg-slate-50  bg-white px-4 py-1 text-xs text-slate-600 text-slate-600 shadow",
-              isEdit && "bg-slate-500 text-white"
+              "tansition block rounded-r-full  border-r bg-slate-50  bg-white px-4 py-1 text-xs  text-slate-600 shadow",
+              isEdit && "bg-rose-500 text-white"
             )}
           >
             编辑
