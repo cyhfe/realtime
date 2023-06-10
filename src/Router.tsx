@@ -46,7 +46,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Navigate to="/chat" />,
+        element: <Navigate to="/openai" />,
       },
       {
         path: "/chat",
