@@ -34,7 +34,9 @@ function OpenAi() {
         </div>
       </div>
       <div className="grow overflow-hidden bg-slate-50">
-        <Outlet />
+        <div className="h-full">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

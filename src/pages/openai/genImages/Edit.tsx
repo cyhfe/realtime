@@ -9,6 +9,7 @@ import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
 import clsx from "clsx";
 import Loading from "../../../components/Loading";
+import { Toast, ToastHandler } from "../../../components/Toast";
 
 export type CanvasHandler = {
   toFile: () => Promise<File>;
@@ -23,7 +24,8 @@ const ImageEdit = forwardRef<CanvasHandler, ImageEditProps>(function ImageEdit(
   ref
 ) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useImperativeHandle(
@@ -48,31 +50,29 @@ const ImageEdit = forwardRef<CanvasHandler, ImageEditProps>(function ImageEdit(
     []
   );
 
-  function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement>) {
-    console.log("mouse down");
-    setIsEditing(true);
+  function onMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+    setIsDrawing(true);
+  }
+  function onMouseUp() {
+    setIsDrawing(false);
+  }
+  function onMouseOut() {
+    setIsDrawing(false);
   }
 
-  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement>) {
-    if (!imageLoaded) return;
-
-    console.log("mouse move");
-    if (!isEditing) return;
-    const canvas = canvasRef?.current;
+  function onMouseMove(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+    if (!isDrawing || !imageLoaded) return;
+    console.log("move");
+    const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const { top, left } = canvas.getBoundingClientRect();
+    const x = e.clientX - left;
+    const y = e.clientY - top;
 
-    var radius = 10; // 涂抹的半径
-    ctx.clearRect(mouseX - radius, mouseY - radius, radius * 2, radius * 2);
-  }
-
-  function handleMouseUp(e: React.MouseEvent<HTMLCanvasElement>) {
-    console.log("mouse up");
-    setIsEditing(false);
+    const imageData = ctx.createImageData(10, 10);
+    ctx.putImageData(imageData, x, y);
   }
 
   useEffect(() => {
@@ -90,21 +90,15 @@ const ImageEdit = forwardRef<CanvasHandler, ImageEditProps>(function ImageEdit(
     };
   }, [canvasRef, src]);
 
-  useEffect(() => {
-    if (!imageLoaded) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-  }, [canvasRef, imageLoaded]);
   return (
     <canvas
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseOut={onMouseOut}
+      onMouseMove={onMouseMove}
       width={512}
       height={512}
-      className="border bg-sky-300"
+      className="border bg-transparent"
       ref={canvasRef}
     ></canvas>
   );
@@ -119,24 +113,107 @@ const Edit = () => {
   const canvasHandlerRef = useRef<CanvasHandler>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const errorToastRef = useRef<ToastHandler>(null);
 
   function handleFileChange(
     e: React.ChangeEvent<HTMLInputElement>,
-    onload: (res: string) => void
+    onload: (res: string | null) => void
   ) {
     const file = e.target.files?.[0];
-    if (!file) return setPreview(null);
-    if (!file.type.startsWith("image/")) return setPreview(null);
+    if (!file) return onload(null);
+    if (file.type !== "image/png") {
+      onload(null);
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "请上传png格式的图片",
+      });
+    }
+    const maximumSize = 4 * 1024 * 1024;
+    console.log(file);
+    if (file.size >= maximumSize) {
+      onload(null);
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "图片大小不能超过4MB",
+      });
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
       onload(result);
+      const img = new Image();
+      img.src = result;
+
+      img.onload = function () {
+        if (img.width !== 512 || img.height !== 512) {
+          onload(null);
+          return errorToastRef.current?.toast({
+            title: "错误",
+            content: "图片尺寸必须为512x512",
+          });
+        }
+      };
     };
     reader.readAsDataURL(file);
   }
 
+  async function handleGenerate() {
+    const file = previewFileRef.current?.files?.[0];
+    if (!file)
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "请上传图片",
+      });
+
+    const prompt = inputRef.current?.value ?? "";
+    if (!prompt)
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "请输入提示词",
+      });
+
+    const mask = await canvasHandlerRef.current?.toFile();
+    if (!mask)
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "请上传遮罩",
+      });
+
+    const formData = new FormData();
+    formData.append("file", file);
+    mask && formData.append("mask", mask);
+    formData.append("prompt", prompt);
+
+    const token = getToken() ?? undefined;
+    setIsLoading(true);
+    requestApi({
+      method: "post",
+      endPoint: "/images/edit/upload",
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+      token,
+    })
+      .then((res) => {
+        console.log(res);
+        const prefix = "data:image/png;base64,";
+        const src = prefix + res.data.b64_json;
+        setGenerate(src);
+      })
+      .catch((err) => {
+        console.log(err);
+        errorToastRef.current?.toast({
+          title: "服务端错误",
+          content: "生成图片失败",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }
+
   return (
-    <div>
+    <div className="">
       <div className="mb-6 flex items-stretch gap-x-6">
         <div className="">
           <label
@@ -182,12 +259,14 @@ const Edit = () => {
           <input
             type="text"
             placeholder="提示词"
-            // className="block w-full rounded-full border border-slate-500 bg-gray-50 p-3 text-gray-900 focus:border-slate-500 focus:ring-slate-500 sm:text-xs"
             className="block  w-full rounded-full px-4  text-xs shadow"
+            ref={inputRef}
           />
         </div>
         <div className="flex h-[33px] cursor-pointer items-center justify-center self-end rounded bg-white px-6 text-sm font-semibold text-slate-500 shadow transition hover:bg-slate-600 hover:text-white">
-          <div>合成</div>
+          <button onClick={handleGenerate} disabled={isLoading}>
+            合成
+          </button>
         </div>
       </div>
 
@@ -212,13 +291,7 @@ const Edit = () => {
         <div className="flex basis-1/2 items-center justify-center">
           <div className="flex h-[512px] w-[512px] items-center justify-center rounded bg-white text-sm text-slate-400 shadow">
             {mask ? (
-              <img
-                src={mask}
-                alt=""
-                width={512}
-                height={512}
-                className="rounded bg-white text-sm text-slate-400 shadow"
-              />
+              <ImageEdit src={mask} ref={canvasHandlerRef} />
             ) : (
               <div className="flex flex-col items-center gap-y-2">
                 <p>遮罩图片,上传后使用鼠标在此区域涂抹编辑</p>
@@ -238,76 +311,16 @@ const Edit = () => {
               alt=""
               width={512}
               height={512}
-              className="rounded bg-white text-sm text-slate-400 shadow"
+              className="rounded bg-white text-sm text-slate-400 shadow "
             />
           ) : (
             <div className="flex flex-col items-center gap-y-2">
-              <p>生成的变体图片</p>
+              <p>生成的合成图片</p>
             </div>
           )}
         </div>
       </div>
-
-      {/* <div className="flex w-full items-center justify-center">
-        <label htmlFor="file">File</label>
-        <input
-          ref={fileRef}
-          id="file"
-          name="file"
-          type="file"
-          onChange={handleFileChange}
-        />
-
-        <button>Upload</button>
-        {preview && <img src={preview} alt="" width={512} height={512} />}
-
-        {preview && <ImageEdit src={preview} ref={canvasHandlerRef} />}
-
-        <input type="text" ref={inputRef} />
-
-        <button
-          onClick={async () => {
-            const file = fileRef.current?.files?.[0];
-            if (!file) return;
-
-            const prompt = inputRef.current?.value ?? "";
-            if (!prompt) return;
-
-            const mask = await canvasHandlerRef.current?.toFile();
-
-            if (!mask) return;
-
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("mask", mask);
-            formData.append("prompt", prompt);
-
-            const token = getToken() ?? undefined;
-
-            requestApi({
-              method: "post",
-              endPoint: "/images/edit/upload",
-              data: formData,
-              headers: { "Content-Type": "multipart/form-data" },
-              token,
-            })
-              .then((res) => {
-                console.log(res);
-                console.log("upload complete xxx");
-                const prefix = "data:image/png;base64,";
-                const src = prefix + res.data.b64_json;
-                setImage(src);
-              })
-              .catch((err) => {
-                console.log(err);
-                console.log("upload error");
-              });
-          }}
-        >
-          生成
-        </button>
-        {image && <img src={image} alt="" width={512} height={512} />}
-      </div> */}
+      <Toast ref={errorToastRef} />
     </div>
   );
 };
