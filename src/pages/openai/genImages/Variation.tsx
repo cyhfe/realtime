@@ -71,8 +71,8 @@ const Variation = () => {
           ref={fileRef}
           className={clsx(
             `block cursor-pointer border bg-slate-200 text-xs text-slate-500 shadow-inner transition file:mr-4 
-                file:cursor-pointer file:rounded-l file:border-0 file:bg-slate-600 file:px-4 file:py-2 file:text-xs file:font-semibold
-                file:text-white file:shadow-inner file:transition`
+             file:cursor-pointer file:rounded-l file:border-0 file:bg-slate-600 file:px-4 file:py-2 file:text-xs file:font-semibold
+             file:text-white file:shadow-inner file:transition`
           )}
           onChange={handleFileChange}
         />
