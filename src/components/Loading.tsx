@@ -1,9 +1,14 @@
-function Loading() {
+import clsx from "clsx";
+
+function Loading({ className }: { className?: string }) {
   return (
-    <div role="status" className="my-2 flex items-center justify-center">
+    <div role="status" className="flex items-center justify-center">
       <svg
         aria-hidden="true"
-        className="mr-2 inline h-6 w-6 animate-spin fill-slate-500 text-slate-200"
+        className={clsx(
+          "mr-2 inline h-6 w-6 animate-spin fill-slate-500 text-slate-200",
+          className
+        )}
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

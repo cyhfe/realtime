@@ -52,6 +52,37 @@ function Conversation() {
     [conversationId]
   );
 
+  async function handleSend(content: string )  {
+    const token = getToken() ?? undefined;
+    setMessageLoading(true);
+    try {
+      const res = await requestApi({
+        method: "post",
+        endPoint: "message",
+        token,
+        data: {
+          content,
+          conversationId,
+        },
+      });
+      if (res.statusText === "OK") {
+        const messages = res.data.messages;
+        setMessages(messages);
+      } else {
+        errorToastRef.current?.toast({
+          title: "服务端错误",
+          content: "error",
+        });
+      }
+    } catch (error: any) {
+      errorToastRef.current?.toast({
+        title: "服务端错误",
+        content: "error",
+      });
+    }
+    setMessageLoading(false);
+  }
+
   useEffect(() => {
     getMessages();
   }, [getMessages]);
@@ -73,10 +104,12 @@ function Conversation() {
             messages.map(({ role, createdAt, content, id }) => {
               const isOwnner = role === "user";
               function getUsername() {
-                if (role === "assistant") return "ChatGPT";
-                if (role === "user") return user!.username;
-                if (role === "system") return "系统";
-                return "";
+                const map = {
+                  assistant: "ChatGPT",
+                  user: user!.username,
+                  system: "系统",
+                };
+                return map[role];
               }
               const username = getUsername();
               return (
@@ -97,37 +130,7 @@ function Conversation() {
       <div>
         <SendMessage
           disabled={messageLoading}
-          onSubmit={async (content) => {
-            if (!content) return;
-            const token = getToken() ?? undefined;
-            setMessageLoading(true);
-            try {
-              const res = await requestApi({
-                method: "post",
-                endPoint: "message",
-                token,
-                data: {
-                  content,
-                  conversationId,
-                },
-              });
-              if (res.statusText === "OK") {
-                const messages = res.data.messages;
-                setMessages(messages);
-              } else {
-                errorToastRef.current?.toast({
-                  title: "服务端错误",
-                  content: "error",
-                });
-              }
-            } catch (error: any) {
-              errorToastRef.current?.toast({
-                title: "服务端错误",
-                content: "error",
-              });
-            }
-            setMessageLoading(false);
-          }}
+          onSubmit={handleSend}
         />
       </div>
       <Toast ref={errorToastRef} />
@@ -214,7 +217,8 @@ export function SendMessage({ onSubmit, disabled = false }: SendMessageProps) {
   });
 
   function handleSubmit() {
-    if (!messageRef.current) return;
+    if (!messageRef.current || !messageRef.current.value ) return;
+
     onSubmit(messageRef.current.value);
     messageRef.current.value = "";
   }

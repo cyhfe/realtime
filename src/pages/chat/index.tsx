@@ -344,7 +344,7 @@ function CreateChannel({ onSubmit }: CreateChannelProps) {
                   onSubmit(value);
                   setOpen(false);
                 }}
-                className="rounded bg-blue-400 py-2 text-sm text-white transition-colors hover:bg-blue-500"
+                className="rounded bg-slate-600 py-2 text-sm text-white transition-colors hover:bg-slate-700"
               >
                 创建
               </button>

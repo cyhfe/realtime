@@ -10,6 +10,8 @@ import {
 } from "../../../components/Dialog";
 import Input from "../../../components/Input";
 import clsx from "clsx";
+import Loading from "../../../components/Loading";
+import { IconClose } from "../../../components/icon";
 function Chat() {
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
   const { conversationId } = useParams();
@@ -54,6 +56,11 @@ function Chat() {
                     >
                       {item.name}
                     </Link>
+                    <DeleteConversation
+                      onSuccess={() => getConvarsation()}
+                      conversationId={item.id}
+                      name={item.name}
+                    />
                   </div>
                 </div>
               );
@@ -111,11 +118,72 @@ function CreateConversation({ onSuccess }: CreateConversationProps) {
         <Input name="name" label="标题" type="text" ref={createInputRef} />
         <button
           onClick={onCreateConversation}
-          className="block w-full rounded  bg-sky-500 py-2 text-sm font-semibold text-white shadow hover:bg-sky-600"
+          className="block w-full rounded  bg-slate-600 py-2 text-sm font-semibold text-white shadow hover:bg-slate-700"
           disabled={loading}
         >
           提交
         </button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface DeleteConversationProps {
+  onSuccess: () => void;
+  conversationId: string;
+  name: string;
+}
+
+function DeleteConversation({
+  onSuccess,
+  conversationId,
+  name,
+}: DeleteConversationProps) {
+  const [deleteDialogIsOpen, setDeleteDialogIsOpen] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+
+  async function onDeleteConversation() {
+    const token = getToken() ?? undefined;
+    setLoading(true);
+    const res = await requestApi({
+      method: "delete",
+      endPoint: `conversation/${conversationId}`,
+      token,
+    });
+    setLoading(false);
+    if (res.statusText === "OK") {
+      onSuccess();
+      setDeleteDialogIsOpen(false);
+    }
+  }
+  return (
+    <Dialog open={deleteDialogIsOpen} onChange={setDeleteDialogIsOpen}>
+      <DialogTrigger>
+        <div className="flex cursor-pointer items-center px-3 text-slate-200 transition-colors hover:bg-rose-400 hover:text-white">
+          <IconClose className="h-4 w-4" />
+        </div>
+      </DialogTrigger>
+      <DialogContent title="删除对话">
+        <div className="text-semibold text-sm text-slate-600">
+          确认删除对话: {name}
+        </div>
+        <div className="flex gap-x-2">
+          <button
+            onClick={onDeleteConversation}
+            className="block w-full rounded  bg-slate-600 py-2 text-sm font-semibold text-white shadow hover:bg-slate-700 focus:ring-0"
+            disabled={loading}
+          >
+            {loading ? <Loading className="h-3 w-3" /> : "确认"}
+          </button>
+          <button
+            onClick={() => setDeleteDialogIsOpen(false)}
+            className="block w-full rounded   py-2 text-sm font-semibold text-slate-600 shadow hover:bg-slate-400 hover:text-white"
+            disabled={loading}
+          >
+            取消
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -14,13 +14,44 @@ const Variation = () => {
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    console.log(file);
+
     if (!file) return setPreview(null);
-    if (!file.type.startsWith("image/")) return setPreview(null);
+    if (file.type !== "image/png") {
+      setPreview(null);
+      e.target.value = "";
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "请上传png格式的图片",
+      });
+    }
+    const maximumSize = 4 * 1024 * 1024;
+
+    if (file.size >= maximumSize) {
+      setPreview(null);
+      e.target.value = "";
+      return errorToastRef.current?.toast({
+        title: "错误",
+        content: "图片大小不能超过4MB",
+      });
+    }
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setPreview(result);
+    reader.onload = (progressEvent) => {
+      const result = progressEvent.target?.result as string;
+      const img = new Image();
+      img.src = result;
+
+      img.onload = function () {
+        if (img.width !== 512 || img.height !== 512) {
+          setPreview(null);
+          e.target.value = "";
+
+          return errorToastRef.current?.toast({
+            title: "错误",
+            content: "图片尺寸必须为512x512",
+          });
+        }
+        setPreview(result);
+      };
     };
     reader.readAsDataURL(file);
   }

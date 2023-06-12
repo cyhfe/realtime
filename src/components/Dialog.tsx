@@ -33,25 +33,6 @@ function DialogContent({ children, description, title }: DialogContentProps) {
               </DialogPrimitive.Description>
             )}
             {children}
-            {/* <div className="flex items-center gap-x-3">
-              <label className="text-xs text-slate-500" htmlFor="name">
-                频道名
-              </label>
-              <input
-                className="grow border p-2 text-xs"
-                ref={deleteChannelInputRef}
-              />
-            </div>
-            <button
-              onClick={() => {
-                if (deleteChannelInputRef.current?.value === channel.name) {
-                  onSubmit(channel.id);
-                }
-              }}
-              className="rounded bg-rose-400 py-2 text-sm text-white transition-colors hover:bg-rose-500"
-            >
-              确认删除
-            </button> */}
             <DialogPrimitive.Close className="absolute right-0 top-0 block">
               <div className="mr-4 mt-4 p-2 hover:bg-slate-200">
                 <IconClose className="h-4 w-4" />

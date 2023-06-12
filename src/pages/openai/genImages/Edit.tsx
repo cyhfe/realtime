@@ -76,8 +76,6 @@ const ImageEdit = forwardRef<CanvasHandler, ImageEditProps>(function ImageEdit(
   }
 
   useEffect(() => {
-    if (!canvasRef || typeof canvasRef === "function" || !canvasRef.current)
-      return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -123,15 +121,17 @@ const Edit = () => {
     if (!file) return onload(null);
     if (file.type !== "image/png") {
       onload(null);
+      e.target.value = "";
       return errorToastRef.current?.toast({
         title: "错误",
         content: "请上传png格式的图片",
       });
     }
     const maximumSize = 4 * 1024 * 1024;
-    console.log(file);
+
     if (file.size >= maximumSize) {
       onload(null);
+      e.target.value = "";
       return errorToastRef.current?.toast({
         title: "错误",
         content: "图片大小不能超过4MB",
@@ -139,20 +139,21 @@ const Edit = () => {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      onload(result);
+    reader.onload = (progressEvent) => {
+      const result = progressEvent.target?.result as string;
       const img = new Image();
       img.src = result;
 
       img.onload = function () {
         if (img.width !== 512 || img.height !== 512) {
           onload(null);
+          e.target.value = "";
           return errorToastRef.current?.toast({
             title: "错误",
             content: "图片尺寸必须为512x512",
           });
         }
+        onload(result);
       };
     };
     reader.readAsDataURL(file);
