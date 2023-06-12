@@ -1,14 +1,6 @@
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import { Midi } from "@tonejs/midi";
 import * as Tone from "tone";
-const synth = new Tone.PolySynth(Tone.Synth, {
-  envelope: {
-    attack: 0.02,
-    decay: 0.1,
-    sustain: 0.3,
-    release: 1,
-  },
-}).toDestination();
 
 export function Music() {
   const [midi, setMidi] = useState<any>(null);
@@ -23,6 +15,11 @@ export function Music() {
     }
     parseMidi();
   }, []);
+
+  // tonejs transport schedule
+  useEffect(() => {
+    
+  })
 
   useEffect(() => {
     const container = containerRef.current;
@@ -63,12 +60,14 @@ export function Music() {
               midi.tracks.forEach((track: any) => {
                 //tracks have notes and controlChanges
                 //notes are an array
+                const synth = new Tone.PolySynth(Tone.Synth).toDestination();
 
                 const notes = track.notes;
                 if (!notes) return;
                 notes.forEach((note: any) => {
                   //note.midi, note.time, note.duration, note.name
                   // console.log(note, Tone.now());
+                  console.log(note)
                   synth.triggerAttackRelease(
                     note.name,
                     note.duration,
