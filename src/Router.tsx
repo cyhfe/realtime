@@ -12,6 +12,14 @@ import Chat from "./pages/chat";
 import { ChatIndex, ChatPrivate, ChatChannel } from "./pages/chat/Chat";
 import Canvas from "./pages/canvas";
 import { Music } from "./pages/music";
+import OpenAi from "./pages/openai";
+import AiChat from "./pages/openai/chat";
+import Images from "./pages/openai/genImages";
+import Conversation from "./pages/openai/chat/Conversation";
+import Generation from "./pages/openai/genImages/Generation";
+import Variation from "./pages/openai/genImages/Variation";
+import Edit from "./pages/openai/genImages/Edit";
+import NoConversation from "./pages/openai/chat/NoConversation";
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   let ctx = useAuth();
@@ -38,7 +46,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Navigate to="/chat" />,
+        element: <Navigate to="/openai" />,
       },
       {
         path: "/chat",
@@ -66,6 +74,48 @@ const router = createBrowserRouter([
       {
         path: "/music",
         element: <Music />,
+      },
+      {
+        path: "/openai",
+        element: <OpenAi />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/openai/chat" />,
+          },
+          {
+            path: "/openai/chat",
+            element: <AiChat />,
+            children: [
+              {
+                index: true,
+                element: <NoConversation />,
+              },
+              {
+                path: "/openai/chat/:conversationId",
+                element: <Conversation />,
+              },
+            ],
+          },
+          {
+            path: "/openai/images",
+            element: <Images />,
+            children: [
+              {
+                path: "/openai/images/generations",
+                element: <Generation />,
+              },
+              {
+                path: "/openai/images/variations",
+                element: <Variation />,
+              },
+              {
+                path: "/openai/images/edit",
+                element: <Edit />,
+              },
+            ],
+          },
+        ],
       },
       {
         path: "*",

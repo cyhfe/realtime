@@ -56,7 +56,7 @@ export const Toast = forwardRef<ToastHandler, ToastProps>(
               </ToastPrimitive.Root>
             );
           })}
-        <ToastPrimitive.Viewport className="fixed right-0 top-0 flex flex-col gap-y-4" />
+        <ToastPrimitive.Viewport className="fixed right-[20px] top-[20px] flex flex-col gap-y-4" />
       </ToastPrimitive.Provider>
     );
   }

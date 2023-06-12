@@ -3,6 +3,7 @@ import { useAuth } from "./context/Auth";
 import { IconCanvas, IconChat, IconLogout, IconMusic } from "./components/icon";
 import { Online } from "./components/Online";
 import { PropsWithChildren } from "react";
+import { SiOpenai } from "react-icons/si";
 import clsx from "clsx";
 export default function Layout() {
   const { user, logout, online } = useAuth();
@@ -12,6 +13,7 @@ export default function Layout() {
   const isChat = pathname === "/chat";
   const isCanvas = pathname === "/canvas";
   const isMusic = pathname === "/music";
+  const isOpenAi = pathname === "/openai";
 
   if (!user) return null;
 
@@ -21,6 +23,16 @@ export default function Layout() {
         <div className="flex  justify-center border-b  bg-white ">
           <div className="flex w-full justify-between">
             <div className="flex text-slate-500 ">
+              <Link
+                to="/openai"
+                className={clsx(
+                  "block  p-4",
+                  isOpenAi && "bg-slate-300 text-slate-800",
+                  !isOpenAi && "hover:bg-slate-200"
+                )}
+              >
+                <SiOpenai className="h-6 w-6" />
+              </Link>
               <Link
                 to="/chat"
                 className={clsx(
@@ -60,7 +72,7 @@ export default function Layout() {
               />
               <div className="flex flex-col items-start">
                 <div className="text-sm">{user.username}</div>
-                <Online online={online} />
+                {(isChat || isCanvas) && <Online online={online} />}
               </div>
 
               <button

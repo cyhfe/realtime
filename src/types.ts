@@ -30,3 +30,20 @@ export interface PrivateMessage {
   to: User;
   toUserId: string;
 }
+
+export interface Conversation {
+  id: string;
+  createdAt: string;
+  name: string;
+  userId: string;
+}
+
+type Role = "system" | "user" | "assistant";
+
+export interface Messages {
+  id: string;
+  createdAt: string;
+  role: Role;
+  content: string;
+  conversationId: string;
+}
