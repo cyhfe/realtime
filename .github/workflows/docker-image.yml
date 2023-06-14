@@ -16,5 +16,5 @@ jobs:
           touch .env
           echo BASE_URL=${{vars.BASE_URL}} >> .env
           echo AUTH_BASE_URL=${{vars.AUTH_BASE_URL}} >> .env
-          sudo docker compose config
-          sudo docker compose -p realtime up --build -d
+          docker compose config
+          docker compose -p realtime up --build -d
