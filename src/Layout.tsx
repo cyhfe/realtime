@@ -53,7 +53,7 @@ export default function Layout() {
               >
                 <IconCanvas />
               </Link>
-              <Link
+              {/* <Link
                 to="/music"
                 className={clsx(
                   "block  p-4 ",
@@ -62,7 +62,7 @@ export default function Layout() {
                 )}
               >
                 <IconMusic />
-              </Link>
+              </Link> */}
             </div>
             <div className="mr-8 flex items-center gap-x-3">
               <img
