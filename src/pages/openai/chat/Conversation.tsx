@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
@@ -10,6 +10,8 @@ import { useAuth } from "../../../context/Auth";
 import { IconSend } from "../../../components/icon";
 import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
+import { SiOpenai } from "react-icons/si";
+import { EmotionJSX } from "@emotion/react/types/jsx-namespace";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
@@ -114,6 +116,15 @@ function Conversation() {
                 return map[role];
               }
               const username = getUsername();
+              function getAvatar() {
+                const map = {
+                  assistant: <SiOpenai />,
+                  user: <img src={user!.avatar} alt="avatar" />,
+                  system: null,
+                };
+                return map[role];
+              }
+              const avatar = getAvatar();
               return (
                 <Message
                   key={id}
@@ -121,7 +132,7 @@ function Conversation() {
                   createdAt={createdAt}
                   username={username}
                   content={content}
-                  avatar={user.avatar}
+                  avatar={avatar}
                 />
               );
             })}
@@ -141,7 +152,7 @@ interface MessageProps {
   isOwnner: boolean;
   createdAt: string;
   username: string;
-  avatar: string;
+  avatar: ReactNode;
   content: string;
 }
 
@@ -158,11 +169,9 @@ function Message({
     >
       <div className="flex gap-x-4">
         {!isOwnner && (
-          <img
-            className="h-8 w-8 flex-none rounded-full bg-gray-50"
-            src={avatar}
-            alt="avatar"
-          />
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gray-50 shadow-md">
+            {avatar}
+          </div>
         )}
         <div
           className={clsx(
@@ -186,17 +195,15 @@ function Message({
             </div>
           )}
 
-          <div className="prose prose-slate max-w-prose rounded bg-white px-3 py-2 text-sm  text-slate-600  shadow">
+          <div className="prose prose-slate max-w-prose rounded bg-white px-5 py-4 text-sm text-slate-600 shadow-md">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
         </div>
 
         {isOwnner && (
-          <img
-            className="h-8 w-8 flex-none rounded-full bg-gray-50"
-            src={avatar}
-            alt="avatar"
-          />
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gray-50 shadow-md">
+            {avatar}
+          </div>
         )}
       </div>
     </div>
