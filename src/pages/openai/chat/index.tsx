@@ -12,20 +12,32 @@ import Input from "../../../components/Input";
 import clsx from "clsx";
 import Loading from "../../../components/Loading";
 import { IconClose } from "../../../components/icon";
+import { Toast, ToastHandler } from "../../../components/Toast";
 function Chat() {
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
+  const [loading, setLoading] = useState(false);
   const { conversationId } = useParams();
+  const errorToastRef = useRef<ToastHandler>(null);
   async function getConvarsation() {
     const token = getToken() ?? undefined;
-    const res = await requestApi({
-      method: "get",
-      endPoint: "conversation",
-      token,
-    });
-    if (res.statusText === "OK") {
-      const { conversation } = res.data;
-      setConversation(conversation);
+    setLoading(true);
+    try {
+      const res = await requestApi({
+        method: "get",
+        endPoint: "conversation",
+        token,
+      });
+      if (res.statusText === "OK") {
+        const { conversation } = res.data;
+        setConversation(conversation);
+      }
+    } catch (error) {
+      errorToastRef.current?.toast({
+        title: "服务端错误",
+        content: "error",
+      });
     }
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -36,40 +48,45 @@ function Chat() {
     <div className="flex h-full">
       <div className="basis-[180px] overflow-y-auto overflow-x-hidden border-r  py-1 md:block">
         <CreateConversation onSuccess={() => getConvarsation()} />
-        <div className="flex flex-col divide-y divide-slate-100 border-y">
-          {conversation &&
-            conversation.map((item) => {
-              const isActive = conversationId === item.id;
-              return (
-                <div
-                  key={item.id}
-                  className={!isActive ? "bg-white" : "bg-slate-200"}
-                >
+        {loading ? (
+          <Loading className="my-2" />
+        ) : (
+          <div className="flex flex-col divide-y divide-slate-100 border-y">
+            {conversation &&
+              conversation.map((item) => {
+                const isActive = conversationId === item.id;
+                return (
                   <div
-                    className={clsx("flex", !isActive && "hover:bg-slate-50")}
+                    key={item.id}
+                    className={!isActive ? "bg-white" : "bg-slate-200"}
                   >
-                    <Link
-                      to={`/openai/chat/${item.id}`}
-                      className={clsx(
-                        "flex grow items-center px-4 py-2 text-sm text-slate-600"
-                      )}
+                    <div
+                      className={clsx("flex", !isActive && "hover:bg-slate-50")}
                     >
-                      {item.name}
-                    </Link>
-                    <DeleteConversation
-                      onSuccess={() => getConvarsation()}
-                      conversationId={item.id}
-                      name={item.name}
-                    />
+                      <Link
+                        to={`/openai/chat/${item.id}`}
+                        className={clsx(
+                          "flex grow items-center px-4 py-2 text-sm text-slate-600"
+                        )}
+                      >
+                        {item.name}
+                      </Link>
+                      <DeleteConversation
+                        onSuccess={() => getConvarsation()}
+                        conversationId={item.id}
+                        name={item.name}
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-        </div>
+                );
+              })}
+          </div>
+        )}
       </div>
       <div className="grow overflow-hidden ">
         <Outlet />
       </div>
+      <Toast ref={errorToastRef} />
     </div>
   );
 }

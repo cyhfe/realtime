@@ -22,6 +22,7 @@ function Conversation() {
     async function getMessages() {
       const token = getToken() ?? undefined;
       try {
+        setMessageLoading(true);
         const res = await requestApi({
           method: "get",
           endPoint: "message",
@@ -48,11 +49,12 @@ function Conversation() {
           content: "error",
         });
       }
+      setMessageLoading(false);
     },
     [conversationId]
   );
 
-  async function handleSend(content: string )  {
+  async function handleSend(content: string) {
     const token = getToken() ?? undefined;
     setMessageLoading(true);
     try {
@@ -128,10 +130,7 @@ function Conversation() {
       </div>
 
       <div>
-        <SendMessage
-          disabled={messageLoading}
-          onSubmit={handleSend}
-        />
+        <SendMessage disabled={messageLoading} onSubmit={handleSend} />
       </div>
       <Toast ref={errorToastRef} />
     </div>
@@ -217,7 +216,7 @@ export function SendMessage({ onSubmit, disabled = false }: SendMessageProps) {
   });
 
   function handleSubmit() {
-    if (!messageRef.current || !messageRef.current.value ) return;
+    if (!messageRef.current || !messageRef.current.value) return;
 
     onSubmit(messageRef.current.value);
     messageRef.current.value = "";
