@@ -37,8 +37,8 @@ function Signup() {
     });
     const data = await res.json();
 
-    if (res.status !== 200) {
-      setServerError(data.message);
+    if (res.statusText !== "OK") {
+      setServerError(data.message ?? "error");
     } else {
       const { username, id } = data.user;
       setUser({
@@ -160,8 +160,8 @@ function Login() {
     });
     const data = await res.json();
 
-    if (res.status !== 200) {
-      setServerError(data.message);
+    if (res.statusText !== "OK") {
+      setServerError(data.message ?? "error");
     } else {
       const { username, id, avatar } = data.user;
       setUser({
