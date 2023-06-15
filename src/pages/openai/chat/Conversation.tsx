@@ -12,6 +12,10 @@ import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
 import { SiOpenai } from "react-icons/si";
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
@@ -22,6 +26,9 @@ function Conversation() {
   const mountedRef = useRef(false);
   const { user } = useAuth();
   const { conversationId } = useParams();
+
+  const hasMore = count > (messages?.length ?? 0);
+
   const getMessages = useCallback(
     async function getMessages() {
       const token = getToken() ?? undefined;
@@ -37,10 +44,17 @@ function Conversation() {
           },
         });
         if (res.statusText === "OK") {
+          await sleep(5000);
           console.log(res.data);
           const { messages } = res.data;
-          setMessages((prev) => (!prev ? messages : [...messages, ...prev]));
+
+          setMessages((prev) => {
+            console.log(prev);
+            if (prev === null) return messages;
+            else return [...messages, ...prev];
+          });
           setCount(res.data.count);
+          offset.current += 1;
         } else {
           console.log(res.data);
           errorToastRef.current?.toast({
@@ -110,29 +124,25 @@ function Conversation() {
     }
   }, [messages]);
 
+  const handleScroll = useCallback(
+    function handleScroll() {
+      const messageBox = messageBoxRef.current!;
+      if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
+        getMessages();
+      }
+    },
+    [hasMore, getMessages, messageLoading]
+  );
+
   // lazy loading
   useEffect(() => {
     const messageBox = messageBoxRef.current!;
 
-    function handleScroll() {
-      if (messageLoading) return;
-      if (
-        messageBox.scrollTop < 100 &&
-        !messageLoading &&
-        messages!.length < count
-      ) {
-        console.log("loadmore");
-        setMessageLoading(true);
-        setTimeout(() => {
-          setMessageLoading(false);
-        }, 1000);
-      }
-    }
     messageBox.addEventListener("scroll", handleScroll);
     return () => {
       messageBox.removeEventListener("scroll", handleScroll);
     };
-  }, [count, getMessages, messageLoading, messages]);
+  }, [handleScroll]);
 
   useEffect(() => {
     async function init() {
