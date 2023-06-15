@@ -11,13 +11,15 @@ import { IconSend } from "../../../components/icon";
 import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
 import { SiOpenai } from "react-icons/si";
-import { EmotionJSX } from "@emotion/react/types/jsx-namespace";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
   const [messageLoading, setMessageLoading] = useState(false);
+  const offset = useRef(0);
+  const [count, setCount] = useState(0);
   const errorToastRef = useRef<ToastHandler>(null);
+  const mountedRef = useRef(false);
   const { user } = useAuth();
   const { conversationId } = useParams();
   const getMessages = useCallback(
@@ -31,12 +33,14 @@ function Conversation() {
           token,
           params: {
             conversationId,
+            offset: offset.current,
           },
         });
         if (res.statusText === "OK") {
           console.log(res.data);
           const { messages } = res.data;
-          setMessages(messages);
+          setMessages((prev) => (!prev ? messages : [...messages, ...prev]));
+          setCount(res.data.count);
         } else {
           console.log(res.data);
           errorToastRef.current?.toast({
@@ -87,22 +91,63 @@ function Conversation() {
     setMessageLoading(false);
   }
 
-  useEffect(() => {
-    getMessages();
-  }, [getMessages]);
+  function scrollToBottom() {
+    const messageBox = messageBoxRef.current!;
+    console.log(
+      messageBox,
+      messageBox.scrollHeight,
+      messageBox.clientHeight,
+      messageBox.scrollHeight - messageBox.clientHeight
+    );
+    messageBox.scrollTo(0, messageBox.scrollHeight - messageBox.clientHeight);
+  }
 
   useEffect(() => {
-    if (!messages || !messages.length) return;
-    function scrollToTop() {
-      messageBoxRef.current?.scrollTo(0, messageBoxRef.current.scrollHeight);
+    if (!messages) return;
+    if (!mountedRef.current) {
+      scrollToBottom();
+      mountedRef.current = true;
     }
-    scrollToTop();
-  }, [messages, messageLoading]);
+  }, [messages]);
+
+  // lazy loading
+  useEffect(() => {
+    const messageBox = messageBoxRef.current!;
+
+    function handleScroll() {
+      if (messageLoading) return;
+      if (
+        messageBox.scrollTop < 100 &&
+        !messageLoading &&
+        messages!.length < count
+      ) {
+        console.log("loadmore");
+        setMessageLoading(true);
+        setTimeout(() => {
+          setMessageLoading(false);
+        }, 1000);
+      }
+    }
+    messageBox.addEventListener("scroll", handleScroll);
+    return () => {
+      messageBox.removeEventListener("scroll", handleScroll);
+    };
+  }, [count, getMessages, messageLoading, messages]);
+
+  useEffect(() => {
+    async function init() {
+      await getMessages();
+      scrollToBottom();
+    }
+    init();
+  }, [getMessages]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="grow overflow-hidden">
         <div className="h-full overflow-y-auto px-7 py-2" ref={messageBoxRef}>
+          {messageLoading && <Loading />}
+
           {messages &&
             user &&
             messages.map(({ role, createdAt, content, id }) => {
@@ -136,7 +181,6 @@ function Conversation() {
                 />
               );
             })}
-          {messageLoading && <Loading />}
         </div>
       </div>
 
