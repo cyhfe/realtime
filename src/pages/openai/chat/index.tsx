@@ -13,6 +13,7 @@ import clsx from "clsx";
 import Loading from "../../../components/Loading";
 import { IconClose } from "../../../components/icon";
 import { Toast, ToastHandler } from "../../../components/Toast";
+
 function Chat() {
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +74,10 @@ function Chat() {
                         {item.name}
                       </Link>
                       <DeleteConversation
-                        onSuccess={() => navagate("/openai/chat")}
+                        onSuccess={() => {
+                          getConvarsation();
+                          navagate("/openai/chat");
+                        }}
                         conversationId={item.id}
                         name={item.name}
                       />
@@ -192,7 +196,7 @@ function DeleteConversation({
             className="block w-full rounded  bg-slate-600 py-2 text-sm font-semibold text-white shadow hover:bg-slate-700 focus:ring-0"
             disabled={loading}
           >
-            {loading ? <Loading className="h-3 w-3" /> : "确认"}
+            确认
           </button>
           <button
             onClick={() => setDeleteDialogIsOpen(false)}

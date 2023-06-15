@@ -11,6 +11,7 @@ import { IconSend } from "../../../components/icon";
 import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
 import { SiOpenai } from "react-icons/si";
+import Preset from "./Preset";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
@@ -289,6 +290,7 @@ export function SendMessage({ onSubmit, disabled = false }: SendMessageProps) {
   return (
     <div className="shrink-0 grow-0 basis-auto bg-white">
       <div className="p-6">
+        <Preset />
         <textarea
           disabled={disabled}
           ref={messageRef}
