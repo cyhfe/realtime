@@ -48,7 +48,7 @@ function Signup() {
       });
 
       setToken(data.token);
-      navigate("/chat");
+      navigate("/openai");
     }
   }
 
@@ -171,7 +171,7 @@ function Login() {
       });
 
       setToken(data.token);
-      navigate("/chat");
+      navigate("/openai");
     }
   }
 
@@ -238,7 +238,7 @@ function LoginPage() {
   const ctx = useAuth();
 
   if (ctx.user) {
-    return <Navigate to={"/chat"} />;
+    return <Navigate to={"/openai"} />;
   }
 
   const tabs = [

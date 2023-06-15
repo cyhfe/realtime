@@ -102,7 +102,6 @@ function Chat() {
     }
 
     function onDeleteChannel() {
-      console.log("delete");
       navagate("/chat");
     }
 

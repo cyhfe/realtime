@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Conversation } from "../../../types";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
@@ -13,11 +13,13 @@ import clsx from "clsx";
 import Loading from "../../../components/Loading";
 import { IconClose } from "../../../components/icon";
 import { Toast, ToastHandler } from "../../../components/Toast";
+
 function Chat() {
   const [conversation, setConversation] = useState<Conversation[] | null>(null);
   const [loading, setLoading] = useState(false);
   const { conversationId } = useParams();
   const errorToastRef = useRef<ToastHandler>(null);
+  const navagate = useNavigate();
   async function getConvarsation() {
     const token = getToken() ?? undefined;
     setLoading(true);
@@ -72,7 +74,10 @@ function Chat() {
                         {item.name}
                       </Link>
                       <DeleteConversation
-                        onSuccess={() => getConvarsation()}
+                        onSuccess={() => {
+                          getConvarsation();
+                          navagate("/openai/chat");
+                        }}
                         conversationId={item.id}
                         name={item.name}
                       />
@@ -84,7 +89,7 @@ function Chat() {
         )}
       </div>
       <div className="grow overflow-hidden ">
-        <Outlet />
+        <Outlet key={conversationId} />
       </div>
       <Toast ref={errorToastRef} />
     </div>
@@ -191,7 +196,7 @@ function DeleteConversation({
             className="block w-full rounded  bg-slate-600 py-2 text-sm font-semibold text-white shadow hover:bg-slate-700 focus:ring-0"
             disabled={loading}
           >
-            {loading ? <Loading className="h-3 w-3" /> : "确认"}
+            确认
           </button>
           <button
             onClick={() => setDeleteDialogIsOpen(false)}

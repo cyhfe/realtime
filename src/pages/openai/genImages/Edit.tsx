@@ -62,7 +62,6 @@ const ImageEdit = forwardRef<CanvasHandler, ImageEditProps>(function ImageEdit(
 
   function onMouseMove(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     if (!isDrawing || !imageLoaded) return;
-    console.log("move");
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -196,7 +195,7 @@ const Edit = () => {
       token,
     })
       .then((res) => {
-        console.log(res);
+
         const prefix = "data:image/png;base64,";
         const src = prefix + res.data.b64_json;
         setGenerate(src);

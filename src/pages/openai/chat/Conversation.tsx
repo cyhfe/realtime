@@ -11,6 +11,7 @@ import { IconSend } from "../../../components/icon";
 import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
 import { SiOpenai } from "react-icons/si";
+import Preset from "./Preset";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
@@ -116,7 +117,7 @@ function Conversation() {
   const handleScroll = useCallback(
     async function handleScroll() {
       const messageBox = messageBoxRef.current!;
-      if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
+      if (messageBox.scrollTop < 100 && hasMore && !messageLoading) {
         const prevHeight = messageBox.scrollHeight;
         nextHeightRef.current = prevHeight;
         await getMessages();
@@ -149,8 +150,10 @@ function Conversation() {
 
   useEffect(() => {
     const messageBox = messageBoxRef.current!;
-    messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
-  }, [sendMessageLoading]) 
+    if (sendMessageLoading) {
+      messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
+    }
+  }, [sendMessageLoading]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -287,6 +290,7 @@ export function SendMessage({ onSubmit, disabled = false }: SendMessageProps) {
   return (
     <div className="shrink-0 grow-0 basis-auto bg-white">
       <div className="p-6">
+        <Preset />
         <textarea
           disabled={disabled}
           ref={messageRef}
