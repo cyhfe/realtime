@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, Outlet, useParams } from "react-router-dom";
+import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 import { Conversation } from "../../../types";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
@@ -18,6 +18,7 @@ function Chat() {
   const [loading, setLoading] = useState(false);
   const { conversationId } = useParams();
   const errorToastRef = useRef<ToastHandler>(null);
+  const navagate = useNavigate();
   async function getConvarsation() {
     const token = getToken() ?? undefined;
     setLoading(true);
@@ -72,7 +73,7 @@ function Chat() {
                         {item.name}
                       </Link>
                       <DeleteConversation
-                        onSuccess={() => getConvarsation()}
+                        onSuccess={() => navagate("/openai/chat")}
                         conversationId={item.id}
                         name={item.name}
                       />
@@ -84,7 +85,7 @@ function Chat() {
         )}
       </div>
       <div className="grow overflow-hidden ">
-        <Outlet />
+        <Outlet key={conversationId} />
       </div>
       <Toast ref={errorToastRef} />
     </div>

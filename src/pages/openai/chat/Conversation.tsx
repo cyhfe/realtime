@@ -116,7 +116,7 @@ function Conversation() {
   const handleScroll = useCallback(
     async function handleScroll() {
       const messageBox = messageBoxRef.current!;
-      if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
+      if (messageBox.scrollTop < 100 && hasMore && !messageLoading) {
         const prevHeight = messageBox.scrollHeight;
         nextHeightRef.current = prevHeight;
         await getMessages();
@@ -149,8 +149,10 @@ function Conversation() {
 
   useEffect(() => {
     const messageBox = messageBoxRef.current!;
-    messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
-  }, [sendMessageLoading]) 
+    if (sendMessageLoading) {
+      messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
+    }
+  }, [sendMessageLoading]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
