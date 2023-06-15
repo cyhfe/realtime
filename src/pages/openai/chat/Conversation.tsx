@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { requestApi } from "../../../utils/request";
 import { getToken } from "../../../utils";
@@ -10,14 +10,24 @@ import { useAuth } from "../../../context/Auth";
 import { IconSend } from "../../../components/icon";
 import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
+import { SiOpenai } from "react-icons/si";
 
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
   const [messageLoading, setMessageLoading] = useState(false);
+  const [sendMessageLoading, setSendMessageLoading] = useState(false);
+  const [count, setCount] = useState(0);
+  const messageChangeType = useRef("");
+  const nextHeightRef = useRef(0);
   const errorToastRef = useRef<ToastHandler>(null);
+  const mountedRef = useRef(false);
   const { user } = useAuth();
   const { conversationId } = useParams();
+
+  const skip = messages?.length ?? 0;
+  const hasMore = count > skip;
+
   const getMessages = useCallback(
     async function getMessages() {
       const token = getToken() ?? undefined;
@@ -29,21 +39,24 @@ function Conversation() {
           token,
           params: {
             conversationId,
+            skip,
           },
         });
         if (res.statusText === "OK") {
-          console.log(res.data);
           const { messages } = res.data;
-          setMessages(messages);
+          setMessages((prev) => {
+            if (prev === null) return messages;
+            else return [...messages, ...prev];
+          });
+          messageChangeType.current = "get";
+          setCount(res.data.count);
         } else {
-          console.log(res.data);
           errorToastRef.current?.toast({
             title: "服务端错误",
             content: "error",
           });
         }
       } catch (error: any) {
-        console.log(123);
         errorToastRef.current?.toast({
           title: "服务端错误",
           content: "error",
@@ -51,12 +64,12 @@ function Conversation() {
       }
       setMessageLoading(false);
     },
-    [conversationId]
+    [conversationId, skip]
   );
 
   async function handleSend(content: string) {
     const token = getToken() ?? undefined;
-    setMessageLoading(true);
+    setSendMessageLoading(true);
     try {
       const res = await requestApi({
         method: "post",
@@ -68,8 +81,13 @@ function Conversation() {
         },
       });
       if (res.statusText === "OK") {
-        const messages = res.data.messages;
-        setMessages(messages);
+        const { messages, count } = res.data;
+        setMessages((prev) => {
+          if (prev === null) return messages;
+          else return [...prev, ...messages];
+        });
+        messageChangeType.current = "send";
+        setCount(count);
       } else {
         errorToastRef.current?.toast({
           title: "服务端错误",
@@ -82,25 +100,64 @@ function Conversation() {
         content: "error",
       });
     }
-    setMessageLoading(false);
+    setSendMessageLoading(false);
   }
 
+  function scrollTo() {
+    const messageBox = messageBoxRef.current!;
+    if (messageChangeType.current === "send" || "init") {
+      messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
+    }
+    if (messageChangeType.current === "get") {
+      messageBox.scrollTop = messageBox.scrollHeight - nextHeightRef.current;
+    }
+  }
+
+  const handleScroll = useCallback(
+    async function handleScroll() {
+      const messageBox = messageBoxRef.current!;
+      if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
+        const prevHeight = messageBox.scrollHeight;
+        nextHeightRef.current = prevHeight;
+        await getMessages();
+      }
+    },
+    [hasMore, getMessages, messageLoading]
+  );
+
   useEffect(() => {
-    getMessages();
+    const messageBox = messageBoxRef.current!;
+    messageBox.addEventListener("scroll", handleScroll);
+    return () => {
+      messageBox.removeEventListener("scroll", handleScroll);
+    };
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (mountedRef.current) return;
+    async function init() {
+      messageChangeType.current = "init";
+      await getMessages();
+      mountedRef.current = true;
+    }
+    init();
   }, [getMessages]);
 
   useEffect(() => {
-    if (!messages || !messages.length) return;
-    function scrollToTop() {
-      messageBoxRef.current?.scrollTo(0, messageBoxRef.current.scrollHeight);
-    }
-    scrollToTop();
-  }, [messages, messageLoading]);
+    scrollTo();
+  }, [messages]);
+
+  useEffect(() => {
+    const messageBox = messageBoxRef.current!;
+    messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
+  }, [sendMessageLoading]) 
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <div className="grow overflow-hidden">
         <div className="h-full overflow-y-auto px-7 py-2" ref={messageBoxRef}>
+          {messageLoading && <Loading />}
+
           {messages &&
             user &&
             messages.map(({ role, createdAt, content, id }) => {
@@ -114,6 +171,15 @@ function Conversation() {
                 return map[role];
               }
               const username = getUsername();
+              function getAvatar() {
+                const map = {
+                  assistant: <SiOpenai />,
+                  user: <img src={user!.avatar} alt="avatar" />,
+                  system: null,
+                };
+                return map[role];
+              }
+              const avatar = getAvatar();
               return (
                 <Message
                   key={id}
@@ -121,11 +187,11 @@ function Conversation() {
                   createdAt={createdAt}
                   username={username}
                   content={content}
-                  avatar={user.avatar}
+                  avatar={avatar}
                 />
               );
             })}
-          {messageLoading && <Loading />}
+          {sendMessageLoading && <Loading />}
         </div>
       </div>
 
@@ -141,7 +207,7 @@ interface MessageProps {
   isOwnner: boolean;
   createdAt: string;
   username: string;
-  avatar: string;
+  avatar: ReactNode;
   content: string;
 }
 
@@ -158,11 +224,9 @@ function Message({
     >
       <div className="flex gap-x-4">
         {!isOwnner && (
-          <img
-            className="h-8 w-8 flex-none rounded-full bg-gray-50"
-            src={avatar}
-            alt="avatar"
-          />
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gray-50 shadow-md">
+            {avatar}
+          </div>
         )}
         <div
           className={clsx(
@@ -186,17 +250,15 @@ function Message({
             </div>
           )}
 
-          <div className="prose prose-slate max-w-prose rounded bg-white px-3 py-2 text-sm  text-slate-600  shadow">
+          <div className="prose prose-slate max-w-prose rounded bg-white px-5 py-4 text-sm text-slate-600 shadow-md">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
           </div>
         </div>
 
         {isOwnner && (
-          <img
-            className="h-8 w-8 flex-none rounded-full bg-gray-50"
-            src={avatar}
-            alt="avatar"
-          />
+          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gray-50 shadow-md">
+            {avatar}
+          </div>
         )}
       </div>
     </div>
