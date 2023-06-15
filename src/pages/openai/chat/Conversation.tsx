@@ -16,14 +16,17 @@ function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
   const [messageLoading, setMessageLoading] = useState(false);
-  const offset = useRef(0);
+  const [sendMessageLoading, setSendMessageLoading] = useState(false);
   const [count, setCount] = useState(0);
+  const messageChangeType = useRef("");
+  const nextHeightRef = useRef(0);
   const errorToastRef = useRef<ToastHandler>(null);
   const mountedRef = useRef(false);
   const { user } = useAuth();
   const { conversationId } = useParams();
 
-  const hasMore = count > (messages?.length ?? 0);
+  const skip = messages?.length ?? 0;
+  const hasMore = count > skip;
 
   const getMessages = useCallback(
     async function getMessages() {
@@ -36,28 +39,24 @@ function Conversation() {
           token,
           params: {
             conversationId,
-            offset: offset.current,
+            skip,
           },
         });
         if (res.statusText === "OK") {
           const { messages } = res.data;
-
           setMessages((prev) => {
-            console.log(prev);
             if (prev === null) return messages;
             else return [...messages, ...prev];
           });
+          messageChangeType.current = "get";
           setCount(res.data.count);
-          offset.current += 1;
         } else {
-          console.log(res.data);
           errorToastRef.current?.toast({
             title: "服务端错误",
             content: "error",
           });
         }
       } catch (error: any) {
-        console.log(123);
         errorToastRef.current?.toast({
           title: "服务端错误",
           content: "error",
@@ -65,12 +64,12 @@ function Conversation() {
       }
       setMessageLoading(false);
     },
-    [conversationId]
+    [conversationId, skip]
   );
 
   async function handleSend(content: string) {
     const token = getToken() ?? undefined;
-    setMessageLoading(true);
+    setSendMessageLoading(true);
     try {
       const res = await requestApi({
         method: "post",
@@ -82,8 +81,13 @@ function Conversation() {
         },
       });
       if (res.statusText === "OK") {
-        const messages = res.data.messages;
-        setMessages(messages);
+        const { messages, count } = res.data;
+        setMessages((prev) => {
+          if (prev === null) return messages;
+          else return [...prev, ...messages];
+        });
+        messageChangeType.current = "send";
+        setCount(count);
       } else {
         errorToastRef.current?.toast({
           title: "服务端错误",
@@ -96,27 +100,18 @@ function Conversation() {
         content: "error",
       });
     }
-    setMessageLoading(false);
+    setSendMessageLoading(false);
   }
 
-  function scrollToBottom() {
+  function scrollTo() {
     const messageBox = messageBoxRef.current!;
-    console.log(
-      messageBox,
-      messageBox.scrollHeight,
-      messageBox.clientHeight,
-      messageBox.scrollHeight - messageBox.clientHeight
-    );
-    messageBox.scrollTo(0, messageBox.scrollHeight - messageBox.clientHeight);
-  }
-
-  useEffect(() => {
-    if (!messages) return;
-    if (!mountedRef.current) {
-      scrollToBottom();
-      mountedRef.current = true;
+    if (messageChangeType.current === "get") {
+      messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
     }
-  }, [messages]);
+    if (messageChangeType.current === "send") {
+      messageBox.scrollTop = nextHeightRef.current;
+    }
+  }
 
   const handleScroll = useCallback(
     async function handleScroll() {
@@ -124,7 +119,7 @@ function Conversation() {
       if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
         const prevHeight = messageBox.scrollHeight;
         await getMessages();
-        messageBox.scrollTop = messageBox.scrollHeight - prevHeight;
+        nextHeightRef.current = messageBox.scrollHeight - prevHeight;
       }
     },
     [hasMore, getMessages, messageLoading]
@@ -139,12 +134,17 @@ function Conversation() {
   }, [handleScroll]);
 
   useEffect(() => {
+    if (mountedRef.current) return;
     async function init() {
       await getMessages();
-      scrollToBottom();
+      mountedRef.current = true;
     }
     init();
   }, [getMessages]);
+
+  useEffect(() => {
+    scrollTo();
+  }, [messages]);
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -185,6 +185,7 @@ function Conversation() {
                 />
               );
             })}
+          {sendMessageLoading && <Loading />}
         </div>
       </div>
 
