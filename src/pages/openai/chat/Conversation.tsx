@@ -105,11 +105,11 @@ function Conversation() {
 
   function scrollTo() {
     const messageBox = messageBoxRef.current!;
-    if (messageChangeType.current === "get") {
+    if (messageChangeType.current === "send" || "init") {
       messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
     }
-    if (messageChangeType.current === "send") {
-      messageBox.scrollTop = nextHeightRef.current;
+    if (messageChangeType.current === "get") {
+      messageBox.scrollTop = messageBox.scrollHeight - nextHeightRef.current;
     }
   }
 
@@ -118,8 +118,8 @@ function Conversation() {
       const messageBox = messageBoxRef.current!;
       if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
         const prevHeight = messageBox.scrollHeight;
+        nextHeightRef.current = prevHeight;
         await getMessages();
-        nextHeightRef.current = messageBox.scrollHeight - prevHeight;
       }
     },
     [hasMore, getMessages, messageLoading]
@@ -136,6 +136,7 @@ function Conversation() {
   useEffect(() => {
     if (mountedRef.current) return;
     async function init() {
+      messageChangeType.current = "init";
       await getMessages();
       mountedRef.current = true;
     }
@@ -145,6 +146,11 @@ function Conversation() {
   useEffect(() => {
     scrollTo();
   }, [messages]);
+
+  useEffect(() => {
+    const messageBox = messageBoxRef.current!;
+    messageBox.scrollTop = messageBox.scrollHeight - messageBox.clientHeight;
+  }, [sendMessageLoading]) 
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
