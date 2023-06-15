@@ -12,10 +12,6 @@ import Loading from "../../../components/Loading";
 import { Toast, ToastHandler } from "../../../components/Toast";
 import { SiOpenai } from "react-icons/si";
 
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function Conversation() {
   const [messages, setMessages] = useState<Messages[] | null>(null);
   const messageBoxRef = useRef<HTMLDivElement | null>(null);
@@ -44,8 +40,6 @@ function Conversation() {
           },
         });
         if (res.statusText === "OK") {
-          await sleep(5000);
-          console.log(res.data);
           const { messages } = res.data;
 
           setMessages((prev) => {
@@ -125,19 +119,19 @@ function Conversation() {
   }, [messages]);
 
   const handleScroll = useCallback(
-    function handleScroll() {
+    async function handleScroll() {
       const messageBox = messageBoxRef.current!;
       if (messageBox.scrollTop === 0 && hasMore && !messageLoading) {
-        getMessages();
+        const prevHeight = messageBox.scrollHeight;
+        await getMessages();
+        messageBox.scrollTop = messageBox.scrollHeight - prevHeight;
       }
     },
     [hasMore, getMessages, messageLoading]
   );
 
-  // lazy loading
   useEffect(() => {
     const messageBox = messageBoxRef.current!;
-
     messageBox.addEventListener("scroll", handleScroll);
     return () => {
       messageBox.removeEventListener("scroll", handleScroll);
