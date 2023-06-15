@@ -195,13 +195,11 @@ const Edit = () => {
       token,
     })
       .then((res) => {
-
         const prefix = "data:image/png;base64,";
         const src = prefix + res.data.b64_json;
         setGenerate(src);
       })
       .catch((err) => {
-        console.log(err);
         errorToastRef.current?.toast({
           title: "服务端错误",
           content: "生成图片失败",

@@ -8,7 +8,6 @@ function OpenAi() {
   const isChat = pathname === "/openai/chat";
   const isImages = pathname === "/openai/images";
 
-  console.log(matches);
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-center border-b bg-white">
