@@ -14,7 +14,7 @@ COPY package-lock.json /app/package-lock.json
 # Same as npm install
 RUN npm ci
 
-COPY . /app
+COPY . .
 
 FROM development AS build
 
